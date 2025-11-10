@@ -70,7 +70,7 @@ export function InteractiveMap({
           style: maptilersdk.MapStyle.STREETS,
           center: [center[0], center[1]],
           zoom: zoom,
-          apiKey: "dA7RH7aBOA9zMomjXvTC",
+          apiKey: process.env.NEXT_PUBLIC_MAPTILER_API_KEY || "",
         });
 
         // Add navigation controls

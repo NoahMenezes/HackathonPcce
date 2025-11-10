@@ -11,8 +11,7 @@
 import { IssueCategory, IssuePriority } from "@/lib/types";
 
 // Configuration
-const GEMINI_API_KEY =
-  process.env.GEMINI_API_KEY || "AIzaSyDuJd2qad4u38nh81icRcMm4lkGnJqoyEk";
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
 const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.0-flash-exp";
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
