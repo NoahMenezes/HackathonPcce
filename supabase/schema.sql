@@ -16,6 +16,45 @@ CREATE TABLE IF NOT EXISTS users (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Create user_profiles table for user-specific settings
+CREATE TABLE IF NOT EXISTS user_profiles (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE UNIQUE NOT NULL,
+  phone VARCHAR(20),
+  address TEXT,
+  city VARCHAR(100),
+  state VARCHAR(100),
+  pincode VARCHAR(10),
+  bio TEXT,
+  profile_image TEXT,
+  -- Notification settings
+  email_notifications BOOLEAN DEFAULT true,
+  push_notifications BOOLEAN DEFAULT true,
+  issue_updates BOOLEAN DEFAULT true,
+  nearby_issues BOOLEAN DEFAULT false,
+  weekly_digest BOOLEAN DEFAULT true,
+  critical_alerts BOOLEAN DEFAULT true,
+  resolution_updates BOOLEAN DEFAULT true,
+  comment_replies BOOLEAN DEFAULT true,
+  upvote_notifications BOOLEAN DEFAULT false,
+  -- Privacy settings
+  profile_visibility VARCHAR(20) DEFAULT 'public' CHECK (profile_visibility IN ('public', 'private', 'friends')),
+  show_email BOOLEAN DEFAULT false,
+  show_phone BOOLEAN DEFAULT false,
+  show_location BOOLEAN DEFAULT true,
+  allow_analytics BOOLEAN DEFAULT true,
+  data_sharing BOOLEAN DEFAULT false,
+  -- System settings
+  language VARCHAR(10) DEFAULT 'en',
+  timezone VARCHAR(50) DEFAULT 'Asia/Kolkata',
+  date_format VARCHAR(20) DEFAULT 'DD/MM/YYYY',
+  map_provider VARCHAR(20) DEFAULT 'maptiler',
+  auto_refresh BOOLEAN DEFAULT true,
+  refresh_interval INTEGER DEFAULT 30,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Create issues table
 CREATE TABLE IF NOT EXISTS issues (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -55,6 +94,8 @@ CREATE TABLE IF NOT EXISTS votes (
 );
 
 -- Create indexes for better performance
+CREATE INDEX IF NOT EXISTS idx_user_profiles_user_id ON user_profiles(user_id);
+
 CREATE INDEX IF NOT EXISTS idx_issues_user_id ON issues(user_id);
 CREATE INDEX IF NOT EXISTS idx_issues_status ON issues(status);
 CREATE INDEX IF NOT EXISTS idx_issues_category ON issues(category);
@@ -83,6 +124,11 @@ $$ LANGUAGE plpgsql;
 -- Create triggers to auto-update updated_at
 CREATE TRIGGER update_users_updated_at
   BEFORE UPDATE ON users
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_user_profiles_updated_at
+  BEFORE UPDATE ON user_profiles
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
 
@@ -136,6 +182,7 @@ CREATE TRIGGER update_votes_on_delete
 
 -- Enable Row Level Security (RLS)
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE issues ENABLE ROW LEVEL SECURITY;
 ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE votes ENABLE ROW LEVEL SECURITY;
@@ -157,6 +204,23 @@ CREATE POLICY "Allow user registration" ON users
 -- Service role can do everything (for backend operations)
 CREATE POLICY "Service role full access" ON users
   FOR ALL USING (true) WITH CHECK (true);
+
+-- RLS Policies for user_profiles table
+-- Users can read all profiles (for public information)
+CREATE POLICY "Users can read profiles" ON user_profiles
+  FOR SELECT USING (true);
+
+-- Users can insert their own profile
+CREATE POLICY "Users can create own profile" ON user_profiles
+  FOR INSERT WITH CHECK (true);
+
+-- Users can update their own profile
+CREATE POLICY "Users can update own profile" ON user_profiles
+  FOR UPDATE USING (true);
+
+-- Users can delete their own profile
+CREATE POLICY "Users can delete own profile" ON user_profiles
+  FOR DELETE USING (true);
 
 -- RLS Policies for issues table
 -- Anyone can read issues
@@ -207,6 +271,13 @@ INSERT INTO users (id, name, email, password, role, created_at) VALUES
   ('550e8400-e29b-41d4-a716-446655440002'::UUID, 'Jane Smith', 'jane@example.com', '$2b$10$P0XqvSRbQhS6Xy5hnp3g/OH5Qce90q1aq810DJJYOW5rRk7evX4Hy', 'citizen', NOW()),
   ('550e8400-e29b-41d4-a716-446655440003'::UUID, 'Admin User', 'admin@ourstreet.com', '$2b$10$Ut7Ku4Dlnf0CUX4wjKHVAuTCCW2kFlp7QodpsCjsessXvlZ1rYqtK', 'admin', NOW())
 ON CONFLICT (email) DO NOTHING;
+
+-- Insert default profiles for seed users
+INSERT INTO user_profiles (user_id, city, state, created_at) VALUES
+  ('550e8400-e29b-41d4-a716-446655440001'::UUID, 'Panjim', 'Goa', NOW()),
+  ('550e8400-e29b-41d4-a716-446655440002'::UUID, 'Panjim', 'Goa', NOW()),
+  ('550e8400-e29b-41d4-a716-446655440003'::UUID, 'Panjim', 'Goa', NOW())
+ON CONFLICT (user_id) DO NOTHING;
 
 -- Insert sample issues
 INSERT INTO issues (title, description, category, location, latitude, longitude, status, priority, user_id, votes, created_at) VALUES

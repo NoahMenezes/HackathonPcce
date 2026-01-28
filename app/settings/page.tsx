@@ -122,26 +122,99 @@ export default function SettingsPage() {
   useEffect(() => {
     setMounted(true);
     if (user) {
-      setProfileData({
-        fullName: user.name || "",
-        email: user.email || "",
-        phone: "",
-        address: "",
-        city: "",
-        state: "",
-        pincode: "",
-        bio: "",
-      });
-      setProfileImage(user.avatar || "");
+      // Fetch user profile from API
+      fetchUserProfile();
     }
   }, [user]);
+
+  const fetchUserProfile = async () => {
+    try {
+      const response = await fetch("/api/user/profile", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        const profile = result.data;
+
+        setProfileData({
+          fullName: profile.full_name || "",
+          email: profile.email || "",
+          phone: profile.phone || "",
+          address: profile.address || "",
+          city: profile.city || "",
+          state: profile.state || "",
+          pincode: profile.pincode || "",
+          bio: profile.bio || "",
+        });
+
+        setNotifications({
+          emailNotifications: profile.email_notifications ?? true,
+          pushNotifications: profile.push_notifications ?? true,
+          issueUpdates: profile.issue_updates ?? true,
+          nearbyIssues: profile.nearby_issues ?? false,
+          weeklyDigest: profile.weekly_digest ?? true,
+          criticalAlerts: profile.critical_alerts ?? true,
+          resolutionUpdates: profile.resolution_updates ?? true,
+          commentReplies: profile.comment_replies ?? true,
+          upvoteNotifications: profile.upvote_notifications ?? false,
+        });
+
+        setPrivacy({
+          profileVisibility: profile.profile_visibility || "public",
+          showEmail: profile.show_email ?? false,
+          showPhone: profile.show_phone ?? false,
+          showLocation: profile.show_location ?? true,
+          allowAnalytics: profile.allow_analytics ?? true,
+          dataSharing: profile.data_sharing ?? false,
+        });
+
+        setSystemSettings({
+          language: profile.language || "en",
+          timezone: profile.timezone || "Asia/Kolkata",
+          dateFormat: profile.date_format || "DD/MM/YYYY",
+          mapProvider: profile.map_provider || "maptiler",
+          autoRefresh: profile.auto_refresh ?? true,
+          refreshInterval: profile.refresh_interval?.toString() || "30",
+        });
+
+        setProfileImage(profile.profile_image || profile.avatar || "");
+      }
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+      toast.error("Failed to load profile data");
+    }
+  };
 
   const handleProfileUpdate = async () => {
     try {
       setIsSaving(true);
-      // API call to update profile
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      toast.success("Profile updated successfully");
+
+      const response = await fetch("/api/user/profile", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          full_name: profileData.fullName,
+          phone: profileData.phone,
+          address: profileData.address,
+          city: profileData.city,
+          state: profileData.state,
+          pincode: profileData.pincode,
+          bio: profileData.bio,
+          profile_image: profileImage,
+        }),
+      });
+
+      if (response.ok) {
+        toast.success("Profile updated successfully");
+      } else {
+        throw new Error("Failed to update profile");
+      }
     } catch (error) {
       toast.error("Failed to update profile");
     } finally {
@@ -152,9 +225,31 @@ export default function SettingsPage() {
   const handleNotificationUpdate = async () => {
     try {
       setIsSaving(true);
-      // API call to update notification settings
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      toast.success("Notification preferences updated");
+
+      const response = await fetch("/api/user/profile", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          email_notifications: notifications.emailNotifications,
+          push_notifications: notifications.pushNotifications,
+          issue_updates: notifications.issueUpdates,
+          nearby_issues: notifications.nearbyIssues,
+          weekly_digest: notifications.weeklyDigest,
+          critical_alerts: notifications.criticalAlerts,
+          resolution_updates: notifications.resolutionUpdates,
+          comment_replies: notifications.commentReplies,
+          upvote_notifications: notifications.upvoteNotifications,
+        }),
+      });
+
+      if (response.ok) {
+        toast.success("Notification preferences updated");
+      } else {
+        throw new Error("Failed to update notifications");
+      }
     } catch (error) {
       toast.error("Failed to update notification settings");
     } finally {
@@ -193,9 +288,28 @@ export default function SettingsPage() {
   const handlePrivacyUpdate = async () => {
     try {
       setIsSaving(true);
-      // API call to update privacy settings
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      toast.success("Privacy settings updated");
+
+      const response = await fetch("/api/user/profile", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          profile_visibility: privacy.profileVisibility,
+          show_email: privacy.showEmail,
+          show_phone: privacy.showPhone,
+          show_location: privacy.showLocation,
+          allow_analytics: privacy.allowAnalytics,
+          data_sharing: privacy.dataSharing,
+        }),
+      });
+
+      if (response.ok) {
+        toast.success("Privacy settings updated");
+      } else {
+        throw new Error("Failed to update privacy settings");
+      }
     } catch (error) {
       toast.error("Failed to update privacy settings");
     } finally {
@@ -206,9 +320,28 @@ export default function SettingsPage() {
   const handleSystemUpdate = async () => {
     try {
       setIsSaving(true);
-      // API call to update system settings
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      toast.success("System settings updated");
+
+      const response = await fetch("/api/user/profile", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          language: systemSettings.language,
+          timezone: systemSettings.timezone,
+          date_format: systemSettings.dateFormat,
+          map_provider: systemSettings.mapProvider,
+          auto_refresh: systemSettings.autoRefresh,
+          refresh_interval: parseInt(systemSettings.refreshInterval),
+        }),
+      });
+
+      if (response.ok) {
+        toast.success("System settings updated");
+      } else {
+        throw new Error("Failed to update system settings");
+      }
     } catch (error) {
       toast.error("Failed to update system settings");
     } finally {
@@ -250,13 +383,37 @@ export default function SettingsPage() {
     toast.success("Settings exported successfully");
   };
 
-  const handleDeleteAccount = () => {
+  const handleDeleteAccount = async () => {
     if (
       confirm(
-        "Are you sure you want to delete your account? This action cannot be undone.",
+        "Are you sure you want to delete your account? This action cannot be undone. All your data will be permanently deleted.",
       )
     ) {
-      toast.error("Account deletion requested. Please contact support.");
+      try {
+        setIsSaving(true);
+        const response = await fetch("/api/user/profile", {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+
+        if (response.ok) {
+          toast.success("Account deleted successfully");
+          // Clear local storage and redirect to home
+          localStorage.removeItem("token");
+          setTimeout(() => {
+            logout();
+            window.location.href = "/";
+          }, 1500);
+        } else {
+          throw new Error("Failed to delete account");
+        }
+      } catch (error) {
+        toast.error("Failed to delete account. Please try again.");
+      } finally {
+        setIsSaving(false);
+      }
     }
   };
 
