@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { getAuthToken } from "@/lib/api-client";
@@ -59,8 +59,11 @@ function ReportIssueContent() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [isAICategorizing, setIsAICategorizing] = useState(false);
   const [useAI, setUseAI] = useState(false); // Toggle for AI categorization
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [stream, setStream] = useState<MediaStream | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [aiSuggestion, setAiSuggestion] = useState<{
     category: IssueCategory;
     priority: string;
@@ -200,6 +203,73 @@ function ReportIssueContent() {
     setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
+  // Camera functions
+  const openCamera = async () => {
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment" }, // Use back camera on mobile
+        audio: false,
+      });
+      setStream(mediaStream);
+      setIsCameraOpen(true);
+      if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream;
+      }
+    } catch (error) {
+      console.error("Error accessing camera:", error);
+      toast.error("Unable to access camera. Please check permissions.");
+    }
+  };
+
+  const closeCamera = () => {
+    if (stream) {
+      stream.getTracks().forEach((track) => track.stop());
+      setStream(null);
+    }
+    setIsCameraOpen(false);
+  };
+
+  const capturePhoto = () => {
+    if (videoRef.current && canvasRef.current) {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      const context = canvas.getContext("2d");
+
+      if (context) {
+        // Set canvas dimensions to match video
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+
+        // Draw video frame to canvas
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        // Convert canvas to blob
+        canvas.toBlob((blob) => {
+          if (blob && selectedFiles.length < 5) {
+            const file = new File([blob], `camera-${Date.now()}.jpg`, {
+              type: "image/jpeg",
+            });
+            const preview = URL.createObjectURL(blob);
+            setSelectedFiles((prev) => [...prev, { file, preview }]);
+            toast.success("Photo captured!");
+            closeCamera();
+          } else if (selectedFiles.length >= 5) {
+            toast.error("Maximum 5 photos allowed");
+          }
+        }, "image/jpeg");
+      }
+    }
+  };
+
+  // Cleanup camera stream on unmount
+  useEffect(() => {
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, [stream]);
+
   const uploadPhotos = async (): Promise<string[]> => {
     if (selectedFiles.length === 0) return [];
 
@@ -321,21 +391,11 @@ function ReportIssueContent() {
       );
     } finally {
       setIsAICategorizing(false);
+      setIsUploading(false);
     }
   };
 
-  // Apply AI suggestion
-  const applyAISuggestion = () => {
-    if (aiSuggestion) {
-      setFormData({
-        ...formData,
-        category: aiSuggestion.category,
-        title: aiSuggestion.suggestedTitle || formData.title,
-      });
-      toast.success("AI suggestion applied!");
-    }
-  };
-
+  // Trigger AI categorization when description and photos are ready
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -522,7 +582,7 @@ function ReportIssueContent() {
 
               {/* AI Mode Toggle */}
               <div className="space-y-2">
-                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950 dark:to-blue-950 rounded-lg border-2 border-purple-200 dark:border-purple-800">
+                <div className="flex items-center justify-between p-4 bg-linear-to-r from-purple-50 to-blue-50 dark:from-purple-950 dark:to-blue-950 rounded-lg border-2 border-purple-200 dark:border-purple-800">
                   <div className="flex items-center gap-3">
                     <Sparkles className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                     <div>
@@ -551,7 +611,7 @@ function ReportIssueContent() {
                         }
                       }}
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600"></div>
                   </label>
                 </div>
               </div>
@@ -657,6 +717,43 @@ function ReportIssueContent() {
                   Upload up to 5 photos. Each file must be under 5MB.
                 </p>
 
+                {/* Camera Modal */}
+                {isCameraOpen && (
+                  <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
+                    <div className="relative w-full max-w-2xl">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="absolute top-2 right-2 z-10 bg-black/50 hover:bg-black/70 text-white"
+                        onClick={closeCamera}
+                      >
+                        <X className="h-6 w-6" />
+                      </Button>
+                      <div className="relative bg-black rounded-lg overflow-hidden">
+                        <video
+                          ref={videoRef}
+                          autoPlay
+                          playsInline
+                          className="w-full h-auto"
+                        />
+                        <canvas ref={canvasRef} className="hidden" />
+                        <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-4">
+                          <Button
+                            type="button"
+                            size="lg"
+                            className="bg-white text-black hover:bg-gray-200"
+                            onClick={capturePhoto}
+                          >
+                            <Camera className="h-5 w-5 mr-2" />
+                            Capture Photo
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* File previews */}
                 {selectedFiles.length > 0 && (
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-3">
@@ -686,21 +783,21 @@ function ReportIssueContent() {
                   </div>
                 )}
 
-                {/* Upload button */}
+                {/* Upload and Camera buttons */}
                 {selectedFiles.length < 5 && (
-                  <div className="flex items-center justify-center w-full">
+                  <div className="grid grid-cols-2 gap-3">
+                    {/* Upload from files */}
                     <label
                       htmlFor="photos"
-                      className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 dark:border-gray-700 border-dashed rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
+                      className="flex flex-col items-center justify-center h-32 border-2 border-gray-300 dark:border-gray-700 border-dashed rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
                     >
-                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        <Camera className="w-8 h-8 mb-2 text-gray-400 dark:text-gray-500" />
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          <span className="font-semibold">Click to upload</span>{" "}
-                          or drag and drop
+                      <div className="flex flex-col items-center justify-center py-5">
+                        <Upload className="w-8 h-8 mb-2 text-gray-400 dark:text-gray-500" />
+                        <p className="text-sm text-gray-500 dark:text-gray-400 font-semibold">
+                          Upload Files
                         </p>
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                          PNG, JPG or JPEG ({selectedFiles.length}/5 uploaded)
+                          ({selectedFiles.length}/5)
                         </p>
                       </div>
                       <input
@@ -712,6 +809,23 @@ function ReportIssueContent() {
                         onChange={handleFileChange}
                       />
                     </label>
+
+                    {/* Take photo with camera */}
+                    <button
+                      type="button"
+                      onClick={openCamera}
+                      className="flex flex-col items-center justify-center h-32 border-2 border-gray-300 dark:border-gray-700 border-dashed rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
+                    >
+                      <div className="flex flex-col items-center justify-center py-5">
+                        <Camera className="w-8 h-8 mb-2 text-gray-400 dark:text-gray-500" />
+                        <p className="text-sm text-gray-500 dark:text-gray-400 font-semibold">
+                          Take Photo
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          Use Camera
+                        </p>
+                      </div>
+                    </button>
                   </div>
                 )}
 

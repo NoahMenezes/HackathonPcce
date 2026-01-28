@@ -41,12 +41,48 @@ export function Map({
   useEffect(() => {
     if (map.current) return;
 
-    maptilersdk.config.apiKey = process.env.NEXT_PUBLIC_MAPTILER_API_KEY || "";
+    const apiKey = process.env.NEXT_PUBLIC_MAPTILER_API_KEY;
+
+    if (!apiKey) {
+      console.warn(
+        "MapTiler API key not found. Using OpenStreetMap as fallback.",
+      );
+    }
+
+    maptilersdk.config.apiKey = apiKey || "";
 
     if (mapContainer.current) {
+      // Use OpenStreetMap style if no API key is available
+      const mapStyle: any = apiKey
+        ? maptilersdk.MapStyle.STREETS
+        : {
+            version: 8 as const,
+            sources: {
+              osm: {
+                type: "raster" as const,
+                tiles: [
+                  "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                  "https://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                  "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                ],
+                tileSize: 256,
+                attribution: "© OpenStreetMap contributors",
+              },
+            },
+            layers: [
+              {
+                id: "osm",
+                type: "raster" as const,
+                source: "osm",
+                minzoom: 0,
+                maxzoom: 19,
+              },
+            ],
+          };
+
       map.current = new maptilersdk.Map({
         container: mapContainer.current,
-        style: maptilersdk.MapStyle.STREETS,
+        style: mapStyle,
         center: center,
         zoom: zoom,
       });
@@ -96,7 +132,7 @@ export function MapControls({
   useEffect(() => {
     if (!map) return;
 
-    const controls: any[] = [];
+    const controls: unknown[] = [];
 
     if (showZoom) {
       const nav = new maptilersdk.NavigationControl();
