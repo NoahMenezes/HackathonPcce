@@ -53,36 +53,13 @@ export function Map({
 
     if (mapContainer.current) {
       // Use OpenStreetMap style if no API key is available
-      const mapStyle: any = apiKey
+      const mapStyle = apiKey
         ? maptilersdk.MapStyle.STREETS
-        : {
-            version: 8 as const,
-            sources: {
-              osm: {
-                type: "raster" as const,
-                tiles: [
-                  "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                  "https://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                  "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                ],
-                tileSize: 256,
-                attribution: "© OpenStreetMap contributors",
-              },
-            },
-            layers: [
-              {
-                id: "osm",
-                type: "raster" as const,
-                source: "osm",
-                minzoom: 0,
-                maxzoom: 19,
-              },
-            ],
-          };
+        : ("https://api.maptiler.com/maps/streets-v2/style.json" as string);
 
       map.current = new maptilersdk.Map({
         container: mapContainer.current,
-        style: mapStyle,
+        style: mapStyle as any,
         center: center,
         zoom: zoom,
       });
@@ -100,7 +77,12 @@ export function Map({
   }, [center, zoom]);
 
   return (
-    <MapContext.Provider value={{ map: mapInstance, mapContainer }}>
+    <MapContext.Provider
+      value={{
+        map: mapInstance,
+        mapContainer: mapContainer as React.RefObject<HTMLDivElement>,
+      }}
+    >
       <div className={cn("relative w-full h-full", className)}>
         <div ref={mapContainer} className="w-full h-full" />
         {children}
@@ -132,7 +114,7 @@ export function MapControls({
   useEffect(() => {
     if (!map) return;
 
-    const controls: unknown[] = [];
+    const controls: any[] = [];
 
     if (showZoom) {
       const nav = new maptilersdk.NavigationControl();
@@ -157,12 +139,18 @@ export function MapControls({
       controls.push(fullscreen);
     }
 
+    if (showCompass) {
+      const compass = new maptilersdk.NavigationControl({ showCompass: true });
+      map.addControl(compass, position);
+      controls.push(compass);
+    }
+
     return () => {
       controls.forEach((control) => {
         try {
           map.removeControl(control);
-        } catch (e) {
-          // Controls might have been removed already
+        } catch {
+          // Ignore errors when removing controls
         }
       });
     };

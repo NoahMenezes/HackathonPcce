@@ -59,6 +59,7 @@ function ReportIssueContent() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isAICategorizing, setIsAICategorizing] = useState(false);
   const [useAI, setUseAI] = useState(false); // Toggle for AI categorization
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
