@@ -204,7 +204,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         if (apiData.recentActivity && Array.isArray(apiData.recentActivity)) {
           const mappedActivity: ActivityItem[] = apiData.recentActivity.map(
             (item: ApiActivityItem, index: number) => ({
-              id: parseInt(item.id) || Date.now() + index,
+              id: parseInt(item.id) || Date.now() + index * 1000,
               type: item.type || "info",
               message: item.message || "",
               timestamp: item.timestamp || new Date().toISOString(),
@@ -387,7 +387,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         if (apiData.recentActivity && Array.isArray(apiData.recentActivity)) {
           const mappedActivity: ActivityItem[] = apiData.recentActivity.map(
             (item: ApiActivityItem, index: number) => ({
-              id: parseInt(item.id) || Date.now() + index,
+              id: parseInt(item.id) || Date.now() + index * 1000,
               type: item.type || "info",
               message: item.message || "",
               timestamp: item.timestamp || new Date().toISOString(),

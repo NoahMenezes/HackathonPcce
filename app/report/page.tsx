@@ -27,6 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ProtectedRoute } from "@/components/protected-route";
 import {
   Card,
   CardContent,
@@ -46,6 +47,14 @@ interface FilePreview {
 }
 
 export default function ReportIssuePage() {
+  return (
+    <ProtectedRoute>
+      <ReportIssueContent />
+    </ProtectedRoute>
+  );
+}
+
+function ReportIssueContent() {
   const router = useRouter();
   const { user, isAuthenticated, isLoading } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -96,30 +105,49 @@ export default function ReportIssuePage() {
           toast.success("Location captured automatically!");
         },
         (error) => {
-          const errorMessage =
-            error.message || "Unable to get location. Please enable GPS.";
-          toast.error(errorMessage);
+          // Silently handle permission denial, user can manually get location
+          console.log("Location permission not granted:", error.message);
+          // Don't show error toast on initial load, just log it
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0,
         },
       );
-    } else {
-      toast.error("Geolocation is not supported by your browser");
     }
   }, []);
 
   const getLocation = () => {
     if ("geolocation" in navigator) {
+      toast.loading("Getting your location...");
       navigator.geolocation.getCurrentPosition(
         (position) => {
           setLocation({
             lat: position.coords.latitude,
             lng: position.coords.longitude,
           });
+          toast.dismiss();
           toast.success("Location captured successfully!");
         },
         (error) => {
-          const errorMessage =
-            error.message || "Unable to get location. Please enable GPS.";
-          toast.error(errorMessage);
+          toast.dismiss();
+          if (error.code === error.PERMISSION_DENIED) {
+            toast.error(
+              "Please enable location permissions in your browser settings",
+            );
+          } else if (error.code === error.POSITION_UNAVAILABLE) {
+            toast.error("Location information is unavailable");
+          } else if (error.code === error.TIMEOUT) {
+            toast.error("Location request timed out. Please try again.");
+          } else {
+            toast.error("Unable to get location. Please try again.");
+          }
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0,
         },
       );
     } else {
@@ -341,7 +369,9 @@ export default function ReportIssuePage() {
 
       // Check if AI categorization was successful
       if (!formData.category) {
-        toast.error("AI categorization failed. Please select a category manually or try again.");
+        toast.error(
+          "AI categorization failed. Please select a category manually or try again.",
+        );
         return;
       }
     }
@@ -437,7 +467,9 @@ export default function ReportIssuePage() {
       <div className="min-h-screen bg-linear-to-b from-gray-50 to-white dark:from-black dark:to-gray-950 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-purple-600" />
-          <p className="text-gray-600 dark:text-gray-400">Checking authentication...</p>
+          <p className="text-gray-600 dark:text-gray-400">
+            Checking authentication...
+          </p>
         </div>
       </div>
     );
@@ -535,10 +567,7 @@ export default function ReportIssuePage() {
                       </span>
                     )}
                   </div>
-
                 </div>
-
-
 
                 <Select
                   value={formData.category}
@@ -548,7 +577,13 @@ export default function ReportIssuePage() {
                   disabled={useAI && !aiSuggestion}
                 >
                   <SelectTrigger className="bg-white dark:bg-black">
-                    <SelectValue placeholder={useAI ? "AI will suggest category..." : "Select category manually"} />
+                    <SelectValue
+                      placeholder={
+                        useAI
+                          ? "AI will suggest category..."
+                          : "Select category manually"
+                      }
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="pothole">🕳️ Pothole</SelectItem>

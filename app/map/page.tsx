@@ -15,6 +15,7 @@ import {
   MarkersExample,
 } from "@/components/my-map";
 import toast from "react-hot-toast";
+import { ProtectedRoute } from "@/components/protected-route";
 
 // Type for map-compatible issues
 interface MapIssue {
@@ -45,6 +46,14 @@ const statusIcons = {
 const DEFAULT_LOCATION = { lat: 15.2993, lng: 74.124 };
 
 export default function MapPage() {
+  return (
+    <ProtectedRoute>
+      <MapPageContent />
+    </ProtectedRoute>
+  );
+}
+
+function MapPageContent() {
   const router = useRouter();
   const [issues, setIssues] = useState<MapIssue[]>([]);
   const [isLoading, setIsLoading] = useState(true);

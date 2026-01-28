@@ -20,8 +20,17 @@ import { RotatingText } from "@/components/magicui/rotating-text";
 import { useDashboard } from "@/contexts/dashboard-context";
 import { Button } from "@/components/ui/button";
 import { BasicMapExample } from "@/components/my-map";
+import { ProtectedRoute } from "@/components/protected-route";
 
 export default function Page() {
+  return (
+    <ProtectedRoute>
+      <DashboardContent />
+    </ProtectedRoute>
+  );
+}
+
+function DashboardContent() {
   const {
     stats,
     recentActivity,
