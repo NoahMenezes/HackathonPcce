@@ -67,7 +67,8 @@ export function InteractiveMap({
         // Initialize map
         mapRef.current = new maptilersdk.Map({
           container: mapContainerRef.current,
-          style: maptilersdk.MapStyle.STREETS,
+          style:
+            "https://api.maptiler.com/maps/streets-v2-dark/style.json?key=dA7RH7aBOA9zMomjXvTC",
           center: [center[0], center[1]],
           zoom: zoom,
           apiKey:

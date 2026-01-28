@@ -12,7 +12,7 @@ import { Card } from "@/components/ui/card";
 export function BasicMapExample() {
   return (
     <div className="h-[400px] w-full">
-      <Map center={[-74.006, 40.7128]} zoom={12} />
+      <Map center={[-74.006, 40.7128]} zoom={12} theme="dark" />
     </div>
   );
 }
@@ -21,7 +21,7 @@ export function BasicMapExample() {
 export function MapControlsExample() {
   return (
     <div className="h-[400px] w-full">
-      <Map center={[2.3522, 48.8566]} zoom={11}>
+      <Map center={[2.3522, 48.8566]} zoom={11} theme="dark">
         <MapControls
           position="bottom-right"
           showZoom
@@ -59,7 +59,7 @@ const locations = [
 export function MarkersExample() {
   return (
     <div className="h-[400px] w-full">
-      <Map center={[-73.98, 40.76]} zoom={12}>
+      <Map center={[-73.98, 40.76]} zoom={12} theme="dark">
         {locations.map((location) => (
           <MapMarker
             key={location.id}
@@ -89,7 +89,7 @@ export function MarkersExample() {
 export function MyMap() {
   return (
     <Card className="h-[300px] p-0 overflow-hidden">
-      <Map center={[-74.006, 40.7128]} zoom={11}>
+      <Map center={[-74.006, 40.7128]} zoom={11} theme="dark">
         <MapControls />
       </Map>
     </Card>
