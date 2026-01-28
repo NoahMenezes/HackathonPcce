@@ -8,12 +8,7 @@ import { InteractiveMap } from "@/components/interactive-map";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BorderBeam } from "@/components/magicui/border-beam";
 import { Issue } from "@/lib/types";
-import {
-  MyMap,
-  BasicMapExample,
-  MapControlsExample,
-  MarkersExample,
-} from "@/components/my-map";
+
 import toast from "react-hot-toast";
 import { ProtectedRoute } from "@/components/protected-route";
 
@@ -262,46 +257,6 @@ function MapPageContent() {
                 controls
               </p>
             </div>
-
-            {/* Basic Map */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Basic Map</CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Simple map centered on New York City
-                </p>
-              </CardHeader>
-              <CardContent className="p-0">
-                <BasicMapExample />
-              </CardContent>
-            </Card>
-
-            {/* Map with Controls */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Map with Controls</CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Map centered on Paris with full navigation controls
-                </p>
-              </CardHeader>
-              <CardContent className="p-0">
-                <MapControlsExample />
-              </CardContent>
-            </Card>
-
-            {/* Map with Markers */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Map with Markers</CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Interactive markers showing famous NYC locations with tooltips
-                  and popups
-                </p>
-              </CardHeader>
-              <CardContent className="p-0">
-                <MarkersExample />
-              </CardContent>
-            </Card>
 
             {/* Original Issues Map */}
             <Card>
