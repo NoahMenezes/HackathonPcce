@@ -188,6 +188,7 @@ export async function POST(request: NextRequest) {
       location,
       coordinates,
       photoUrl,
+      beforePhotoUrls,
       useAI,
       aiSuggestion,
     } = body;
@@ -421,6 +422,7 @@ export async function POST(request: NextRequest) {
         lng: coordinates.lng,
       },
       photoUrl: validPhotoUrl,
+      beforePhotoUrls: beforePhotoUrls,
       status: "open",
       priority,
       userId: user.userId,

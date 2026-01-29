@@ -9,8 +9,8 @@ const CLOUDINARY_UPLOAD_PRESET =
   process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 
 // Supabase configuration
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_CITIZEN_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_CITIZEN_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 // File validation constants
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -124,7 +124,7 @@ async function uploadToSupabase(file: File, userId: string): Promise<string> {
     ) {
       throw new Error(
         "Storage bucket 'issue-photos' not found. Please create it in your Supabase dashboard: " +
-          "Storage > New bucket > Name: 'issue-photos' > Check 'Public bucket' > Create",
+        "Storage > New bucket > Name: 'issue-photos' > Check 'Public bucket' > Create",
       );
     }
     throw new Error(`Failed to upload to Supabase: ${error.message}`);
@@ -210,8 +210,8 @@ export async function POST(request: NextRequest) {
           console.error("❌ No storage provider configured");
           throw new Error(
             "No storage provider configured. Please set up Cloudinary or Supabase Storage. " +
-              "Add NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME and NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET, " +
-              "or NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to your .env.local file.",
+            "Add NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME and NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET, " +
+            "or NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to your .env.local file.",
           );
         }
         console.log("✅ Upload successful:", uploadedUrl);

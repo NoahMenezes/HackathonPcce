@@ -39,14 +39,41 @@ type IssueRow = {
   latitude: number;
   longitude: number;
   photo_url: string | null;
+  before_photo_urls: string[] | null;
+  after_photo_urls: string[] | null;
   status: string;
   priority: string;
   user_id: string;
   votes: number;
+  ward: string | null;
   created_at: string;
   updated_at: string;
   resolved_at: string | null;
 };
+
+// Helper to map database row to Issue interface
+function mapRowToIssue(row: IssueRow, comments: Comment[] = []): Issue {
+  return {
+    id: row.id,
+    title: row.title,
+    description: row.description,
+    category: row.category as IssueCategory,
+    location: row.location,
+    coordinates: { lat: row.latitude, lng: row.longitude },
+    photoUrl: row.photo_url || undefined,
+    beforePhotoUrls: row.before_photo_urls || undefined,
+    afterPhotoUrls: row.after_photo_urls || undefined,
+    status: row.status as IssueStatus,
+    priority: row.priority as IssuePriority,
+    userId: row.user_id,
+    votes: row.votes || 0,
+    comments: comments,
+    ward: row.ward || undefined,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    resolvedAt: row.resolved_at || undefined,
+  };
+}
 
 type CommentRow = {
   id: string;
@@ -254,7 +281,7 @@ export const issueDb = {
         location: issue.location,
         latitude: issue.coordinates.lat,
         longitude: issue.coordinates.lng,
-        photo_url: issue.photoUrl || null,
+        photo_url: issue.photoUrl || (issue.beforePhotoUrls && issue.beforePhotoUrls.length > 0 ? issue.beforePhotoUrls[0] : null),
         status: issue.status,
         priority: issue.priority,
         user_id: issue.userId,
@@ -270,23 +297,7 @@ export const issueDb = {
     // Get comments for this issue
     const comments = await commentDb.findByIssueId(data.id);
 
-    return {
-      id: data.id,
-      title: data.title,
-      description: data.description,
-      category: data.category,
-      location: data.location,
-      coordinates: { lat: data.latitude, lng: data.longitude },
-      photoUrl: data.photo_url || undefined,
-      status: data.status,
-      priority: data.priority,
-      userId: data.user_id,
-      votes: data.votes || 0,
-      comments: comments,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at,
-      resolvedAt: data.resolved_at || undefined,
-    };
+    return mapRowToIssue(data, comments);
   },
 
   async findById(id: string, role: string = "citizen"): Promise<Issue | null> {
@@ -303,23 +314,7 @@ export const issueDb = {
     // Get comments for this issue
     const comments = await commentDb.findByIssueId(data.id);
 
-    return {
-      id: data.id,
-      title: data.title,
-      description: data.description,
-      category: data.category,
-      location: data.location,
-      coordinates: { lat: data.latitude, lng: data.longitude },
-      photoUrl: data.photo_url || undefined,
-      status: data.status,
-      priority: data.priority,
-      userId: data.user_id,
-      votes: data.votes || 0,
-      comments: comments,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at,
-      resolvedAt: data.resolved_at || undefined,
-    };
+    return mapRowToIssue(data, comments);
   },
 
   async update(
@@ -327,7 +322,7 @@ export const issueDb = {
     updates: Partial<Issue>,
     role: string = "citizen",
   ): Promise<Issue | null> {
-    const updateData: Record<string, string | number | null | undefined> = {};
+    const updateData: Record<string, string | number | string[] | null | undefined> = {};
     if (updates.title !== undefined) updateData.title = updates.title;
     if (updates.description !== undefined)
       updateData.description = updates.description;
@@ -356,23 +351,7 @@ export const issueDb = {
     // Get comments for this issue
     const comments = await commentDb.findByIssueId(data.id);
 
-    return {
-      id: data.id,
-      title: data.title,
-      description: data.description,
-      category: data.category,
-      location: data.location,
-      coordinates: { lat: data.latitude, lng: data.longitude },
-      photoUrl: data.photo_url || undefined,
-      status: data.status,
-      priority: data.priority,
-      userId: data.user_id,
-      votes: data.votes || 0,
-      comments: comments,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at,
-      resolvedAt: data.resolved_at || undefined,
-    };
+    return mapRowToIssue(data, comments);
   },
 
   async delete(id: string, role: string = "citizen"): Promise<void> {
@@ -397,23 +376,7 @@ export const issueDb = {
     const issues = await Promise.all(
       data.map(async (issue: IssueRow) => {
         const comments = await commentDb.findByIssueId(issue.id);
-        return {
-          id: issue.id,
-          title: issue.title,
-          description: issue.description,
-          category: issue.category as IssueCategory,
-          location: issue.location,
-          coordinates: { lat: issue.latitude, lng: issue.longitude },
-          photoUrl: issue.photo_url || undefined,
-          status: issue.status as IssueStatus,
-          priority: issue.priority as IssuePriority,
-          userId: issue.user_id,
-          votes: issue.votes || 0,
-          comments: comments,
-          createdAt: issue.created_at,
-          updatedAt: issue.updated_at,
-          resolvedAt: issue.resolved_at || undefined,
-        };
+        return mapRowToIssue(issue, comments);
       }),
     );
 
@@ -437,23 +400,7 @@ export const issueDb = {
     const issues = await Promise.all(
       data.map(async (issue: IssueRow) => {
         const comments = await commentDb.findByIssueId(issue.id);
-        return {
-          id: issue.id,
-          title: issue.title,
-          description: issue.description,
-          category: issue.category as IssueCategory,
-          location: issue.location,
-          coordinates: { lat: issue.latitude, lng: issue.longitude },
-          photoUrl: issue.photo_url || undefined,
-          status: issue.status as IssueStatus,
-          priority: issue.priority as IssuePriority,
-          userId: issue.user_id,
-          votes: issue.votes || 0,
-          comments: comments,
-          createdAt: issue.created_at,
-          updatedAt: issue.updated_at,
-          resolvedAt: issue.resolved_at || undefined,
-        };
+        return mapRowToIssue(issue, comments);
       }),
     );
 
@@ -477,23 +424,7 @@ export const issueDb = {
     const issues = await Promise.all(
       data.map(async (issue: IssueRow) => {
         const comments = await commentDb.findByIssueId(issue.id);
-        return {
-          id: issue.id,
-          title: issue.title,
-          description: issue.description,
-          category: issue.category as IssueCategory,
-          location: issue.location,
-          coordinates: { lat: issue.latitude, lng: issue.longitude },
-          photoUrl: issue.photo_url || undefined,
-          status: issue.status as IssueStatus,
-          priority: issue.priority as IssuePriority,
-          userId: issue.user_id,
-          votes: issue.votes || 0,
-          comments: comments,
-          createdAt: issue.created_at,
-          updatedAt: issue.updated_at,
-          resolvedAt: issue.resolved_at || undefined,
-        };
+        return mapRowToIssue(issue, comments);
       }),
     );
 
@@ -517,23 +448,7 @@ export const issueDb = {
     const issues = await Promise.all(
       data.map(async (issue: IssueRow) => {
         const comments = await commentDb.findByIssueId(issue.id);
-        return {
-          id: issue.id,
-          title: issue.title,
-          description: issue.description,
-          category: issue.category as IssueCategory,
-          location: issue.location,
-          coordinates: { lat: issue.latitude, lng: issue.longitude },
-          photoUrl: issue.photo_url || undefined,
-          status: issue.status as IssueStatus,
-          priority: issue.priority as IssuePriority,
-          userId: issue.user_id,
-          votes: issue.votes || 0,
-          comments: comments,
-          createdAt: issue.created_at,
-          updatedAt: issue.updated_at,
-          resolvedAt: issue.resolved_at || undefined,
-        };
+        return mapRowToIssue(issue, comments);
       }),
     );
 
@@ -560,23 +475,7 @@ export const issueDb = {
 
     const comments = await commentDb.findByIssueId(data.id);
 
-    return {
-      id: data.id,
-      title: data.title,
-      description: data.description,
-      category: data.category,
-      location: data.location,
-      coordinates: { lat: data.latitude, lng: data.longitude },
-      photoUrl: data.photo_url || undefined,
-      status: data.status,
-      priority: data.priority,
-      userId: data.user_id,
-      votes: data.votes || 0,
-      comments: comments,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at,
-      resolvedAt: data.resolved_at || undefined,
-    };
+    return mapRowToIssue(data, comments);
   },
 
   async decrementVotes(
@@ -599,23 +498,7 @@ export const issueDb = {
 
     const comments = await commentDb.findByIssueId(data.id);
 
-    return {
-      id: data.id,
-      title: data.title,
-      description: data.description,
-      category: data.category,
-      location: data.location,
-      coordinates: { lat: data.latitude, lng: data.longitude },
-      photoUrl: data.photo_url || undefined,
-      status: data.status,
-      priority: data.priority,
-      userId: data.user_id,
-      votes: data.votes || 0,
-      comments: comments,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at,
-      resolvedAt: data.resolved_at || undefined,
-    };
+    return mapRowToIssue(data, comments);
   },
 };
 
