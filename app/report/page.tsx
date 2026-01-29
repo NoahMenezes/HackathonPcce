@@ -209,14 +209,15 @@ function ReportIssueContent() {
   const openCamera = async () => {
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" }, // Use back camera on mobile
+        video: {
+          facingMode: "environment",
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+        },
         audio: false,
       });
       setStream(mediaStream);
       setIsCameraOpen(true);
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-      }
     } catch (error) {
       console.error("Error accessing camera:", error);
       toast.error("Unable to access camera. Please check permissions.");
@@ -262,6 +263,16 @@ function ReportIssueContent() {
       }
     }
   };
+
+  // Setup video stream when camera opens
+  useEffect(() => {
+    if (isCameraOpen && stream && videoRef.current) {
+      videoRef.current.srcObject = stream;
+      videoRef.current.play().catch((err) => {
+        console.error("Error playing video:", err);
+      });
+    }
+  }, [isCameraOpen, stream]);
 
   // Cleanup camera stream on unmount
   useEffect(() => {
@@ -771,12 +782,14 @@ function ReportIssueContent() {
                       >
                         <X className="h-6 w-6" />
                       </Button>
-                      <div className="relative bg-black rounded-lg overflow-hidden">
+                      <div className="relative bg-black rounded-lg overflow-hidden min-h-100 flex items-center justify-center">
                         <video
                           ref={videoRef}
                           autoPlay
                           playsInline
-                          className="w-full h-auto"
+                          muted
+                          className="w-full h-auto max-h-[80vh]"
+                          style={{ transform: "scaleX(-1)" }}
                         />
                         <canvas ref={canvasRef} className="hidden" />
                         <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-4">
