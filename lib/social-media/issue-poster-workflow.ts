@@ -43,7 +43,7 @@ class IssueContentGenerator {
     }
 
     this.model = new ChatGoogleGenerativeAI({
-      modelName: process.env.GEMINI_MODEL || "gemini-1.5-flash",
+      model: process.env.GEMINI_MODEL || "gemini-1.5-flash",
       apiKey: apiKey,
       temperature: 0.7,
     });
@@ -89,7 +89,9 @@ Generate ONLY the tweet text, nothing else.`;
         tweetText = tweetText.substring(0, 277) + "...";
       }
 
-      console.log(`✅ Generated tweet (${tweetText.length} chars): ${tweetText}`);
+      console.log(
+        `✅ Generated tweet (${tweetText.length} chars): ${tweetText}`,
+      );
 
       return tweetText;
     } catch (error) {
@@ -133,7 +135,10 @@ Generate ONLY the tweet text, nothing else.`;
     // Ensure under 280 characters
     if (tweet.length > 280) {
       const titleLength = 280 - tweet.length + issue.title.length - 20;
-      tweet = tweet.replace(issue.title, issue.title.substring(0, titleLength) + "...");
+      tweet = tweet.replace(
+        issue.title,
+        issue.title.substring(0, titleLength) + "...",
+      );
     }
 
     return tweet;
@@ -172,7 +177,9 @@ Example: "REJECT: Contains personal information"`;
       const shouldPost = result.toUpperCase().startsWith("APPROVE");
       const reason = result.split(":")[1]?.trim() || result;
 
-      console.log(`🔍 Moderation result: ${shouldPost ? "✅ APPROVED" : "❌ REJECTED"} - ${reason}`);
+      console.log(
+        `🔍 Moderation result: ${shouldPost ? "✅ APPROVED" : "❌ REJECTED"} - ${reason}`,
+      );
 
       return { shouldPost, reason };
     } catch (error) {
@@ -191,7 +198,9 @@ Example: "REJECT: Contains personal information"`;
  * Node 1: Content Moderation
  * Checks if the issue content is appropriate for social media
  */
-async function moderateIssue(state: IssuePostingState): Promise<Partial<IssuePostingState>> {
+async function moderateIssue(
+  state: IssuePostingState,
+): Promise<Partial<IssuePostingState>> {
   console.log(`📋 Moderating issue: ${state.issue.title}`);
 
   try {
@@ -226,7 +235,9 @@ async function moderateIssue(state: IssuePostingState): Promise<Partial<IssuePos
  * Node 2: Generate Tweet Content
  * Uses AI to create engaging tweet text
  */
-async function generateContent(state: IssuePostingState): Promise<Partial<IssuePostingState>> {
+async function generateContent(
+  state: IssuePostingState,
+): Promise<Partial<IssuePostingState>> {
   console.log(`✍️ Generating tweet content for: ${state.issue.title}`);
 
   try {
@@ -247,7 +258,9 @@ async function generateContent(state: IssuePostingState): Promise<Partial<IssueP
  * Node 3: Upload Media (if available)
  * Uploads issue photo to Twitter
  */
-async function uploadMedia(state: IssuePostingState): Promise<Partial<IssuePostingState>> {
+async function uploadMedia(
+  state: IssuePostingState,
+): Promise<Partial<IssuePostingState>> {
   if (!state.includeImage || !state.issue.photoUrl) {
     console.log("📷 No image to upload, skipping media upload");
     return {};
@@ -295,7 +308,9 @@ async function uploadMedia(state: IssuePostingState): Promise<Partial<IssuePosti
  * Node 4: Post to Twitter
  * Posts the generated tweet to X/Twitter
  */
-async function postToTwitter(state: IssuePostingState): Promise<Partial<IssuePostingState>> {
+async function postToTwitter(
+  state: IssuePostingState,
+): Promise<Partial<IssuePostingState>> {
   if (!state.shouldPost) {
     console.log("⏭️ Skipping post - not approved");
     return { result: { success: false, error: "Not approved for posting" } };
@@ -318,7 +333,8 @@ async function postToTwitter(state: IssuePostingState): Promise<Partial<IssuePos
       return {
         result: {
           success: false,
-          error: "Twitter client not configured. Please set up API credentials.",
+          error:
+            "Twitter client not configured. Please set up API credentials.",
         },
         error: "Twitter not configured",
       };
@@ -429,11 +445,13 @@ export async function postIssueToSocialMedia(
   options: {
     includeImage?: boolean;
     autoApprove?: boolean;
-  } = {}
+  } = {},
 ): Promise<TweetResult> {
   const { includeImage = true, autoApprove = false } = options;
 
-  console.log(`\n🚀 Starting social media posting workflow for issue: ${issue.id}`);
+  console.log(
+    `\n🚀 Starting social media posting workflow for issue: ${issue.id}`,
+  );
   console.log(`   Title: ${issue.title}`);
   console.log(`   Category: ${issue.category}`);
   console.log(`   Include image: ${includeImage}`);
@@ -480,9 +498,13 @@ export async function postMultipleIssues(
     includeImages?: boolean;
     delayBetweenPosts?: number; // milliseconds
     autoApprove?: boolean;
-  } = {}
+  } = {},
 ): Promise<{ success: number; failed: number; results: TweetResult[] }> {
-  const { includeImages = true, delayBetweenPosts = 5000, autoApprove = false } = options;
+  const {
+    includeImages = true,
+    delayBetweenPosts = 5000,
+    autoApprove = false,
+  } = options;
 
   console.log(`\n📢 Batch posting ${issues.length} issues to social media...`);
 
@@ -492,7 +514,9 @@ export async function postMultipleIssues(
 
   for (let i = 0; i < issues.length; i++) {
     const issue = issues[i];
-    console.log(`\n[${i + 1}/${issues.length}] Processing issue: ${issue.title}`);
+    console.log(
+      `\n[${i + 1}/${issues.length}] Processing issue: ${issue.title}`,
+    );
 
     try {
       const result = await postIssueToSocialMedia(issue, {
@@ -510,7 +534,9 @@ export async function postMultipleIssues(
 
       // Add delay between posts to avoid rate limits
       if (i < issues.length - 1) {
-        console.log(`⏳ Waiting ${delayBetweenPosts / 1000}s before next post...`);
+        console.log(
+          `⏳ Waiting ${delayBetweenPosts / 1000}s before next post...`,
+        );
         await new Promise((resolve) => setTimeout(resolve, delayBetweenPosts));
       }
     } catch (error) {

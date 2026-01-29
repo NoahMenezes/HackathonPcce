@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
           success: false,
           error: "Unauthorized - Please login to view notifications",
         } as ApiResponse,
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
           success: false,
           error: "Database not configured",
         } as ApiResponse,
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
           success: false,
           error: "Failed to fetch notifications",
         } as ApiResponse,
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
           totalPages: Math.ceil((count || 0) / pageSize),
         },
       } as ApiResponse,
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("Error in GET /api/notifications:", error);
@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
         success: false,
         error: "Internal server error",
       } as ApiResponse,
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
           success: false,
           error: "Unauthorized - Please login",
         } as ApiResponse,
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
           success: false,
           error: "Database not configured",
         } as ApiResponse,
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
         .update({ read: true })
         .eq("user_id", user.userId)
         .eq("read", false)
-        .select("*", { count: "exact", head: true });
+        .select();
 
       if (error) {
         console.error("Error marking notifications as read:", error);
@@ -144,7 +144,7 @@ export async function POST(request: NextRequest) {
             success: false,
             error: "Failed to mark notifications as read",
           } as ApiResponse,
-          { status: 500 }
+          { status: 500 },
         );
       }
 
@@ -156,7 +156,7 @@ export async function POST(request: NextRequest) {
             markedCount: count || 0,
           },
         } as ApiResponse,
-        { status: 200 }
+        { status: 200 },
       );
     }
 
@@ -165,7 +165,7 @@ export async function POST(request: NextRequest) {
         success: false,
         error: "Invalid action",
       } as ApiResponse,
-      { status: 400 }
+      { status: 400 },
     );
   } catch (error) {
     console.error("Error in POST /api/notifications:", error);
@@ -174,7 +174,7 @@ export async function POST(request: NextRequest) {
         success: false,
         error: "Internal server error",
       } as ApiResponse,
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

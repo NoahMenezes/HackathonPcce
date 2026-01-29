@@ -27,14 +27,12 @@ export async function GET(request: NextRequest) {
           success: false,
           error: "Database not configured",
         } as ApiResponse,
-        { status: 500 }
+        { status: 500 },
       );
     }
 
     // Start building the query
-    let baseQuery = supabase
-      .from("issues")
-      .select("*", { count: "exact" });
+    let baseQuery = supabase.from("issues").select("*", { count: "exact" });
 
     // Apply full-text search if query is provided
     if (query && query.trim().length > 0) {
@@ -45,7 +43,7 @@ export async function GET(request: NextRequest) {
       // For simple search, use ilike (case-insensitive LIKE)
       // In production, you'd want to use proper full-text search with to_tsvector
       baseQuery = baseQuery.or(
-        `title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,location.ilike.%${searchTerm}%`
+        `title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,location.ilike.%${searchTerm}%`,
       );
     }
 
@@ -109,52 +107,51 @@ export async function GET(request: NextRequest) {
           success: false,
           error: "Failed to search issues",
         } as ApiResponse,
-        { status: 500 }
+        { status: 500 },
       );
     }
 
     // Get aggregated filter counts for faceted search
-    let categoryCountsPromise = Promise.resolve({ data: [] });
-    let statusCountsPromise = Promise.resolve({ data: [] });
+    let categoryData: Array<{ category: string }> = [];
+    let statusData: Array<{ status: string }> = [];
 
     if (query && query.trim().length > 0) {
       // Get category breakdown
-      categoryCountsPromise = supabase
+      const categoryResult = await supabase
         .from("issues")
         .select("category")
         .or(
-          `title.ilike.%${query.trim()}%,description.ilike.%${query.trim()}%,location.ilike.%${query.trim()}%`
+          `title.ilike.%${query.trim()}%,description.ilike.%${query.trim()}%,location.ilike.%${query.trim()}%`,
         );
 
+      if (categoryResult.data) {
+        categoryData = categoryResult.data;
+      }
+
       // Get status breakdown
-      statusCountsPromise = supabase
+      const statusResult = await supabase
         .from("issues")
         .select("status")
         .or(
-          `title.ilike.%${query.trim()}%,description.ilike.%${query.trim()}%,location.ilike.%${query.trim()}%`
+          `title.ilike.%${query.trim()}%,description.ilike.%${query.trim()}%,location.ilike.%${query.trim()}%`,
         );
-    }
 
-    const [categoryResult, statusResult] = await Promise.all([
-      categoryCountsPromise,
-      statusCountsPromise,
-    ]);
+      if (statusResult.data) {
+        statusData = statusResult.data;
+      }
+    }
 
     // Count categories and statuses
     const categoryCounts: Record<string, number> = {};
     const statusCounts: Record<string, number> = {};
 
-    if (categoryResult.data) {
-      categoryResult.data.forEach((item: any) => {
-        categoryCounts[item.category] = (categoryCounts[item.category] || 0) + 1;
-      });
-    }
+    categoryData.forEach((item) => {
+      categoryCounts[item.category] = (categoryCounts[item.category] || 0) + 1;
+    });
 
-    if (statusResult.data) {
-      statusResult.data.forEach((item: any) => {
-        statusCounts[item.status] = (statusCounts[item.status] || 0) + 1;
-      });
-    }
+    statusData.forEach((item) => {
+      statusCounts[item.status] = (statusCounts[item.status] || 0) + 1;
+    });
 
     return NextResponse.json(
       {
@@ -181,7 +178,7 @@ export async function GET(request: NextRequest) {
           },
         },
       } as ApiResponse,
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("Error in GET /api/search:", error);
@@ -190,7 +187,7 @@ export async function GET(request: NextRequest) {
         success: false,
         error: "Internal server error",
       } as ApiResponse,
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
