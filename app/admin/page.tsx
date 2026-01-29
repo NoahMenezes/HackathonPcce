@@ -38,6 +38,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import { getAuthToken } from "@/lib/api-client";
 
 interface AdminStats {
   totalUsers: number;
@@ -74,7 +75,7 @@ export default function AdminDashboard() {
 
   const fetchAdminStats = async () => {
     try {
-      const token = localStorage.getItem("citypulse_auth_token");
+      const token = getAuthToken();
       const response = await fetch("/api/admin/stats", {
         headers: {
           Authorization: `Bearer ${token}`,

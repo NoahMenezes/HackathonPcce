@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verify } from "jsonwebtoken";
 import { userDb, generateId, issueDb } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
-
-const JWT_SECRET =
-  process.env.JWT_SECRET || "your-secret-key-change-in-production";
+import { verifyToken } from "@/lib/auth";
 
 interface JWTPayload {
   userId: string;
@@ -46,22 +43,22 @@ export async function POST(request: NextRequest) {
     const token = authHeader.substring(7);
 
     // Verify token and check admin role
-    let decoded: JWTPayload;
-    try {
-      decoded = verify(token, JWT_SECRET) as JWTPayload;
-      console.log(
-        "Token verified for user:",
-        decoded.email,
-        "Role:",
-        decoded.role,
-      );
-    } catch (error) {
-      console.error("Token verification failed:", error);
+    const decoded = verifyToken(token) as JWTPayload | null;
+
+    if (!decoded) {
+      console.error("Token verification failed");
       return NextResponse.json(
         { success: false, message: "Unauthorized - Invalid token" },
         { status: 401 },
       );
     }
+
+    console.log(
+      "Token verified for user:",
+      decoded.email,
+      "Role:",
+      decoded.role,
+    );
 
     if (decoded.role !== "admin") {
       console.error("User is not admin:", decoded.role);
@@ -316,10 +313,8 @@ export async function GET(request: NextRequest) {
     const token = authHeader.substring(7);
 
     // Verify token
-    let decoded: JWTPayload;
-    try {
-      decoded = verify(token, JWT_SECRET) as JWTPayload;
-    } catch {
+    const decoded = verifyToken(token);
+    if (!decoded) {
       return NextResponse.json(
         { success: false, message: "Unauthorized - Invalid token" },
         { status: 401 },

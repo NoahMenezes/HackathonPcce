@@ -44,6 +44,7 @@ import {
   UserX,
 } from "lucide-react";
 import { toast } from "sonner";
+import { getAuthToken } from "@/lib/api-client";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -93,7 +94,7 @@ export default function AdminUsersPage() {
   const fetchUsers = async () => {
     setLoadingUsers(true);
     try {
-      const token = localStorage.getItem("citypulse_auth_token");
+      const token = getAuthToken();
       const params = new URLSearchParams();
 
       if (filters.role) params.append("role", filters.role);
@@ -123,7 +124,7 @@ export default function AdminUsersPage() {
 
   const handleRoleUpdate = async (userId: string, newRole: string) => {
     try {
-      const token = localStorage.getItem("citypulse_auth_token");
+      const token = getAuthToken();
       const response = await fetch(`/api/admin/users/${userId}`, {
         method: "PUT",
         headers: {
@@ -149,7 +150,7 @@ export default function AdminUsersPage() {
     if (!confirm("Are you sure you want to delete this user?")) return;
 
     try {
-      const token = localStorage.getItem("citypulse_auth_token");
+      const token = getAuthToken();
       const response = await fetch(`/api/admin/users/${userId}`, {
         method: "DELETE",
         headers: {

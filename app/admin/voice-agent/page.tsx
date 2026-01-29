@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import Silk from "@/components/ui/silk/Silk";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import { getAuthToken } from "@/lib/api-client";
 import {
   Send,
   Mail,
@@ -178,7 +179,7 @@ export default function AdminVoiceAgentPage() {
     setIsSubmitting(true);
 
     try {
-      const token = localStorage.getItem("citypulse_auth_token");
+      const token = getAuthToken();
       console.log("Auth token present:", !!token);
 
       // Send the response to the user's most recent issue

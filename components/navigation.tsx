@@ -13,7 +13,16 @@ import {
   Shield,
   Mic,
   Github,
+  Menu,
+  X,
 } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -54,8 +63,8 @@ export function Navigation() {
     <header className="sticky top-0 z-[100] w-full bg-white/95 dark:bg-black/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Logo - Left */}
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="relative size-10 transition-transform group-hover:scale-105">
+        <Link href="/" className="flex items-center gap-2 group shrink-0">
+          <div className="relative size-8 sm:size-10 transition-transform group-hover:scale-105">
             <Image
               src="/logo.png"
               alt="OurStreet Logo"
@@ -65,13 +74,13 @@ export function Navigation() {
               priority
             />
           </div>
-          <span className="text-lg font-semibold text-black dark:text-white">
+          <span className="text-base sm:text-lg font-semibold text-black dark:text-white hidden xs:inline">
             OurStreet
           </span>
         </Link>
 
-        {/* Center Navigation - Map, Dashboard, Team with Dock Animation */}
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+        {/* Center Navigation - Desktop only */}
+        <div className="hidden lg:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-fit">
           <TooltipProvider>
             <Dock direction="middle" magnification={50} distance={120}>
               {centerNavItems.map((item) => {
@@ -105,81 +114,143 @@ export function Navigation() {
           </TooltipProvider>
         </div>
 
-        {/* Right Side - Admin Button, Report Issue, Auth & Theme Toggle */}
-        <div className="flex items-center gap-2 relative z-20">
-          {isAuthenticated && user?.role === "admin" && (
-            <Link href="/admin" className="relative z-20">
-              <Button
-                size="sm"
-                variant="outline"
-                className="font-medium border-2 hover:bg-gray-100 dark:hover:bg-gray-900 bg-white dark:bg-black"
-              >
-                <Shield className="mr-1.5 size-4" />
-                Admin Panel
-              </Button>
-            </Link>
-          )}
-          {isAuthenticated && (
-            <Link href="/report" className="relative z-20">
-              <Button
-                size="sm"
-                className="bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 font-medium"
-              >
-                <PlusCircle className="mr-1.5 size-4" />
-                Report Issue
-              </Button>
-            </Link>
-          )}
-          {isAuthenticated && user ? (
-            <div className="flex items-center gap-2 relative z-20">
+        {/* Right Side - Actions & Mobile Menu */}
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+          <div className="hidden sm:flex items-center gap-1 sm:gap-2">
+            {isAuthenticated && user?.role === "admin" && (
+              <Link href="/admin">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 sm:h-9 px-2 sm:px-3 text-xs sm:text-sm font-medium border-2 hover:bg-gray-100 dark:hover:bg-gray-900 bg-white dark:bg-black"
+                >
+                  <Shield className="mr-1.5 size-3.5 sm:size-4" />
+                  Admin
+                </Button>
+              </Link>
+            )}
+            {isAuthenticated ? (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={logout}
-                className="font-medium bg-white dark:bg-black hover:bg-gray-100 dark:hover:bg-gray-900"
+                className="h-8 sm:h-9 px-2 sm:px-3 text-xs sm:text-sm font-medium bg-white dark:bg-black hover:bg-gray-100 dark:hover:bg-gray-900 hidden md:flex"
               >
-                <LogOut className="mr-1.5 size-4" />
+                <LogOut className="mr-1.5 size-3.5 sm:size-4" />
                 Logout
               </Button>
-            </div>
-          ) : (
-            <NavigationMenu className="relative z-20">
-              <NavigationMenuList>
-                {authItems.map((item) => {
-                  const isActive = pathname === item.href;
-                  return (
-                    <NavigationMenuItem key={item.href}>
-                      <Link
-                        href={item.href}
-                        className={cn(
-                          buttonVariants({ variant: "ghost", size: "sm" }),
-                          "font-medium relative z-20",
-                          isActive &&
-                            "bg-gray-100 dark:bg-gray-900 text-black dark:text-white",
-                          item.label === "Sign Up" &&
-                            "bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200",
-                        )}
-                      >
-                        {item.label}
-                      </Link>
-                    </NavigationMenuItem>
-                  );
-                })}
-              </NavigationMenuList>
-            </NavigationMenu>
-          )}
+            ) : (
+              <div className="flex items-center gap-1">
+                {authItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      buttonVariants({ variant: item.label === "Sign Up" ? "default" : "ghost", size: "sm" }),
+                      "h-8 sm:h-9 px-2 sm:px-3 text-xs sm:text-sm font-medium",
+                      item.label === "Sign Up" && "bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200"
+                    )}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
           <a
             href="https://github.com/NoahMenezes/nit_goa_hackathon1"
             target="_blank"
             rel="noopener noreferrer"
             className={cn(
               buttonVariants({ variant: "ghost", size: "icon" }),
-              "size-10 rounded-full",
+              "size-8 sm:size-10 rounded-full"
             )}
           >
-            <Github className="size-5" />
+            <Github className="size-4 sm:size-5" />
           </a>
           <ThemeToggle />
+
+          {/* Mobile Menu Trigger */}
+          <div className="lg:hidden">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="size-8 sm:size-10">
+                  <Menu className="size-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[80%] max-w-[300px] border-l border-gray-200 dark:border-gray-800">
+                <SheetHeader className="text-left py-4">
+                  <SheetTitle className="flex items-center gap-2">
+                    <Image src="/logo.png" alt="Logo" width={24} height={24} />
+                    OurStreet
+                  </SheetTitle>
+                </SheetHeader>
+                <div className="flex flex-col gap-4 mt-8">
+                  <div className="flex flex-col gap-2">
+                    <p className="text-xs font-semibold uppercase text-gray-400 px-2">Navigation</p>
+                    {centerNavItems.map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={cn(
+                          "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
+                          pathname === item.href
+                            ? "bg-gray-100 dark:bg-gray-900 text-black dark:text-white"
+                            : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-900/50"
+                        )}
+                      >
+                        <item.icon className="size-5" />
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
+
+                  <div className="h-px bg-gray-200 dark:bg-gray-800 my-2" />
+
+                  <div className="flex flex-col gap-2">
+                    <p className="text-xs font-semibold uppercase text-gray-400 px-2">Account</p>
+                    {isAuthenticated ? (
+                      <>
+                        {user?.role === "admin" && (
+                          <Link
+                            href="/admin"
+                            className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20"
+                          >
+                            <Shield className="size-5" />
+                            Admin Panel
+                          </Link>
+                        )}
+                        <button
+                          onClick={logout}
+                          className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        >
+                          <LogOut className="size-5" />
+                          Logout
+                        </button>
+                      </>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-2 p-2">
+                        {authItems.map((item) => (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            className={cn(
+                              buttonVariants({ variant: item.label === "Sign Up" ? "default" : "outline", size: "sm" }),
+                              "w-full px-2 text-xs",
+                              item.label === "Sign Up" && "bg-black dark:bg-white text-white dark:text-black"
+                            )}
+                          >
+                            {item.label}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
         </div>
       </div>
     </header>

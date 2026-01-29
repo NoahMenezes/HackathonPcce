@@ -41,6 +41,7 @@ import {
   Clock,
 } from "lucide-react";
 import { toast } from "sonner";
+import { getAuthToken } from "@/lib/api-client";
 
 interface AuditLog {
   id: string;
@@ -91,7 +92,7 @@ export default function AdminAuditLogsPage() {
   const fetchAuditLogs = async () => {
     setLoadingLogs(true);
     try {
-      const token = localStorage.getItem("citypulse_auth_token");
+      const token = getAuthToken();
       const params = new URLSearchParams();
 
       if (filters.action) params.append("action", filters.action);

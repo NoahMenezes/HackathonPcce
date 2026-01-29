@@ -1,7 +1,7 @@
 // Admin Stats API - Ward-wise analytics and performance metrics
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
-import { issueDb } from "@/lib/db";
+import { issueDb, userDb } from "@/lib/db";
 
 // GET /api/admin/stats - Get comprehensive admin statistics
 export async function GET(request: NextRequest) {
@@ -17,36 +17,48 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const ward = searchParams.get("ward");
 
-    let issues = await issueDb.getAll();
-
-    // Filter by ward if specified
-    if (ward) {
-      issues = issues.filter((issue) => issue.ward === ward);
-    }
+    const issues = await issueDb.getAll();
+    const allUsers = await userDb.getAll();
 
     // Overall statistics
-    const totalIssues = issues.length;
-    const openIssues = issues.filter((i) => i.status === "open").length;
-    const inProgressIssues = issues.filter(
+    const totalUsers = allUsers.length;
+    // activeUsers will be calculated below based on issue activity
+
+    let filteredIssues = issues;
+    // Filter by ward if specified
+    if (ward) {
+      filteredIssues = issues.filter((issue) => issue.ward === ward);
+    }
+
+    const issuesToAnalyze = filteredIssues;
+
+    // Overall statistics
+    const totalIssues = issuesToAnalyze.length;
+    const openIssues = issuesToAnalyze.filter((i) => i.status === "open").length;
+    const inProgressIssues = issuesToAnalyze.filter(
       (i) => i.status === "in-progress",
     ).length;
-    const resolvedIssues = issues.filter((i) => i.status === "resolved").length;
-    const closedIssues = issues.filter((i) => i.status === "closed").length;
+    const resolvedIssues = issuesToAnalyze.filter((i) => i.status === "resolved").length;
+    const closedIssues = issuesToAnalyze.filter((i) => i.status === "closed").length;
+
+    // Active users: Users who have reported at least one issue
+    const activeUserIds = new Set(issuesToAnalyze.map(i => i.userId));
+    const activeUsers = activeUserIds.size;
 
     // Priority breakdown
-    const criticalIssues = issues.filter(
+    const criticalIssues = issuesToAnalyze.filter(
       (i) => i.priority === "critical",
     ).length;
-    const highPriorityIssues = issues.filter(
+    const highPriorityIssues = issuesToAnalyze.filter(
       (i) => i.priority === "high",
     ).length;
-    const mediumPriorityIssues = issues.filter(
+    const mediumPriorityIssues = issuesToAnalyze.filter(
       (i) => i.priority === "medium",
     ).length;
-    const lowPriorityIssues = issues.filter((i) => i.priority === "low").length;
+    const lowPriorityIssues = issuesToAnalyze.filter((i) => i.priority === "low").length;
 
     // Category breakdown
-    const categoryBreakdown = issues.reduce(
+    const categoryBreakdown = issuesToAnalyze.reduce(
       (acc, issue) => {
         const existing = acc.find((item) => item.category === issue.category);
         if (existing) {
@@ -60,7 +72,7 @@ export async function GET(request: NextRequest) {
     );
 
     // Ward-wise breakdown
-    const wardBreakdown = issues.reduce(
+    const wardBreakdown = issuesToAnalyze.reduce(
       (acc, issue) => {
         const wardName = issue.ward || "Unassigned";
         const existing = acc.find((item) => item.ward === wardName);
@@ -114,7 +126,7 @@ export async function GET(request: NextRequest) {
       date.setDate(date.getDate() - i);
       const dateStr = date.toISOString().split("T")[0];
 
-      const count = issues.filter((issue) => {
+      const count = issuesToAnalyze.filter((issue) => {
         const issueDate = issue.createdAt.split("T")[0];
         return issueDate === dateStr;
       }).length;
@@ -139,15 +151,25 @@ export async function GET(request: NextRequest) {
       .slice(0, 5);
 
     // Issues requiring attention (high/critical priority, open status)
-    const attentionRequired = issues.filter(
+    const attentionRequired = issuesToAnalyze.filter(
       (i) =>
         (i.priority === "high" || i.priority === "critical") &&
         i.status === "open",
     ).length;
 
+    const resolutionRate = totalIssues > 0
+      ? ((resolvedIssues / totalIssues) * 100).toFixed(1)
+      : "0.0";
+
     return NextResponse.json({
       success: true,
       data: {
+        totalUsers,
+        totalIssues,
+        pendingIssues: openIssues + inProgressIssues,
+        resolvedIssues,
+        activeUsers,
+        resolutionRate: parseFloat(resolutionRate),
         overview: {
           totalIssues,
           openIssues,

@@ -8,6 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageSquare, Mail, Clock, RefreshCw, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
+import { getAuthToken } from "@/lib/api-client";
 
 interface AdminResponse {
   _id: string;
@@ -29,7 +30,7 @@ export function AdminResponses() {
     try {
       if (showToast) setIsRefreshing(true);
 
-      const token = localStorage.getItem("citypulse_auth_token");
+      const token = getAuthToken();
       const response = await fetch("/api/admin/send-response", {
         headers: {
           Authorization: `Bearer ${token}`,
