@@ -560,23 +560,23 @@ function ReportIssueContent() {
         className="fixed inset-0 w-full h-full z-0 pointer-events-none"
       >
         <GradientBlinds
-          gradientColors={["#FF9FFC", "#5227FF", "#7B7481"]}
+          gradientColors={["#FF00FF", "#00FFFF", "#FF0080", "#8000FF"]}
           angle={0}
           noise={0.4}
           blindCount={12}
           blindMinWidth={50}
-          spotlightRadius={0.8}
-          spotlightSoftness={0.8}
-          spotlightOpacity={1.5}
-          mouseDampening={0.1}
+          spotlightRadius={0.9}
+          spotlightSoftness={0.5}
+          spotlightOpacity={2.5}
+          mouseDampening={0.08}
           distortAmount={0}
           shineDirection="left"
-          mixBlendMode="lighten"
+          mixBlendMode="screen"
         />
       </div>
 
-      {/* Semi-transparent overlay for readability */}
-      <div className="fixed inset-0 w-full h-full z-1 bg-white/60 dark:bg-black/60 backdrop-blur-sm pointer-events-none" />
+      {/* Glassmorphism overlay for readability */}
+      <div className="fixed inset-0 w-full h-full z-1 bg-linear-to-br from-white/40 via-white/30 to-white/50 dark:from-black/40 dark:via-black/30 dark:to-black/50 backdrop-blur-md pointer-events-none" />
 
       <div className="container mx-auto px-4 py-8 max-w-4xl relative z-10">
         {/* Header */}
@@ -597,7 +597,7 @@ function ReportIssueContent() {
         </div>
 
         {/* Form Card */}
-        <Card className="border-gray-200 dark:border-gray-800 transition-all duration-300 ease-out hover:shadow-lg">
+        <Card className="border-gray-200/50 dark:border-gray-800/50 bg-white/80 dark:bg-gray-950/80 backdrop-blur-xl shadow-2xl transition-all duration-300 ease-out hover:shadow-lg">
           <CardHeader>
             <CardTitle>Issue Details</CardTitle>
             <CardDescription>
@@ -976,7 +976,7 @@ function ReportIssueContent() {
 
         {/* Info Cards */}
         <div className="grid md:grid-cols-3 gap-4 mt-8">
-          <Card className="border-gray-200 dark:border-gray-800 transition-all duration-300 ease-out hover:scale-[1.03] hover:-translate-y-1 hover:shadow-xl cursor-pointer">
+          <Card className="border-gray-200/50 dark:border-gray-800/50 bg-white/70 dark:bg-gray-950/70 backdrop-blur-lg shadow-xl transition-all duration-300 ease-out hover:scale-[1.03] hover:-translate-y-1 hover:shadow-2xl cursor-pointer">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm flex items-center gap-1">
                 <Sparkles className="h-4 w-4 text-purple-500" />
@@ -989,7 +989,7 @@ function ReportIssueContent() {
               </p>
             </CardContent>
           </Card>
-          <Card className="border-gray-200 dark:border-gray-800 transition-all duration-300 ease-out hover:scale-[1.03] hover:-translate-y-1 hover:shadow-xl cursor-pointer">
+          <Card className="border-gray-200/50 dark:border-gray-800/50 bg-white/70 dark:bg-gray-950/70 backdrop-blur-lg shadow-xl transition-all duration-300 ease-out hover:scale-[1.03] hover:-translate-y-1 hover:shadow-2xl cursor-pointer">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm">Quick Response</CardTitle>
             </CardHeader>
@@ -999,7 +999,7 @@ function ReportIssueContent() {
               </p>
             </CardContent>
           </Card>
-          <Card className="border-gray-200 dark:border-gray-800 transition-all duration-300 ease-out hover:scale-[1.03] hover:-translate-y-1 hover:shadow-xl cursor-pointer">
+          <Card className="border-gray-200/50 dark:border-gray-800/50 bg-white/70 dark:bg-gray-950/70 backdrop-blur-lg shadow-xl transition-all duration-300 ease-out hover:scale-[1.03] hover:-translate-y-1 hover:shadow-2xl cursor-pointer">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm">Track Progress</CardTitle>
             </CardHeader>
@@ -1009,7 +1009,7 @@ function ReportIssueContent() {
               </p>
             </CardContent>
           </Card>
-          <Card className="border-gray-200 dark:border-gray-800 transition-all duration-300 ease-out hover:scale-[1.03] hover:-translate-y-1 hover:shadow-xl cursor-pointer">
+          <Card className="border-gray-200/50 dark:border-gray-800/50 bg-white/70 dark:bg-gray-950/70 backdrop-blur-lg shadow-xl transition-all duration-300 ease-out hover:scale-[1.03] hover:-translate-y-1 hover:shadow-2xl cursor-pointer">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm">Community Impact</CardTitle>
             </CardHeader>
