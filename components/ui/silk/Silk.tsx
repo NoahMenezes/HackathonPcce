@@ -135,7 +135,7 @@ export interface SilkProps {
 const Silk: React.FC<SilkProps> = ({
   speed = 5,
   scale = 1,
-  color = "#7B7481",
+  color = "#5227FF",
   noiseIntensity = 1.5,
   rotation = 0,
 }) => {
@@ -154,9 +154,23 @@ const Silk: React.FC<SilkProps> = ({
   );
 
   return (
-    <Canvas dpr={[1, 2]} frameloop="always">
-      <SilkPlane ref={meshRef} uniforms={uniforms} />
-    </Canvas>
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        position: "absolute",
+        inset: 0,
+      }}
+    >
+      <Canvas
+        dpr={[1, 2]}
+        frameloop="always"
+        gl={{ alpha: true, antialias: false }}
+        style={{ width: "100%", height: "100%" }}
+      >
+        <SilkPlane ref={meshRef} uniforms={uniforms} />
+      </Canvas>
+    </div>
   );
 };
 

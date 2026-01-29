@@ -123,11 +123,11 @@ function MapPageContent() {
   return (
     <div className="flex min-h-screen flex-col bg-white dark:bg-black relative">
       {/* Silk Background */}
-      <div className="fixed inset-0 w-full h-full -z-10 opacity-30 dark:opacity-20">
+      <div className="fixed inset-0 w-full h-full -z-10 opacity-60 dark:opacity-50">
         <Silk
-          speed={3}
-          scale={1.2}
-          color="#7B7481"
+          speed={5}
+          scale={1}
+          color="#5227FF"
           noiseIntensity={1.5}
           rotation={0}
         />
@@ -272,33 +272,21 @@ function MapPageContent() {
                   Real-time civic issues mapped across the city
                 </p>
               </CardHeader>
-              <CardContent className="relative">
-                {/* Silk Background behind map */}
-                <div className="absolute inset-0 z-0 opacity-20 dark:opacity-10 rounded-lg overflow-hidden">
-                  <Silk
-                    speed={2}
-                    scale={1.5}
-                    color="#7B7481"
-                    noiseIntensity={1.2}
-                    rotation={0}
-                  />
-                </div>
-                <div className="relative z-10">
-                  <InteractiveMap
-                    center={[73.8278, 15.4909]}
-                    zoom={12}
-                    markers={issues.map((issue) => ({
-                      id: issue.id,
-                      position: [issue.location.lng, issue.location.lat],
-                      title: issue.title,
-                      status: issue.status,
-                    }))}
-                    onMarkerClick={handleMarkerClick}
-                    height="400px"
-                    showUserLocation={true}
-                    focusOnMarker={focusOnMarker}
-                  />
-                </div>
+              <CardContent>
+                <InteractiveMap
+                  center={[73.8278, 15.4909]}
+                  zoom={12}
+                  markers={issues.map((issue) => ({
+                    id: issue.id,
+                    position: [issue.location.lng, issue.location.lat],
+                    title: issue.title,
+                    status: issue.status,
+                  }))}
+                  onMarkerClick={handleMarkerClick}
+                  height="400px"
+                  showUserLocation={true}
+                  focusOnMarker={focusOnMarker}
+                />
               </CardContent>
             </Card>
           </div>

@@ -220,7 +220,7 @@ export function InteractiveMap({
           userEl.style.height = "20px";
           userEl.style.borderRadius = "50%";
           userEl.style.backgroundColor = "#3b82f6"; // blue
-          userEl.style.border = "3px solid white";
+          userEl.style.border = "1px solid white";
           userEl.style.boxShadow = "0 0 0 4px rgba(59, 130, 246, 0.3)";
           userEl.style.animation = "pulse 2s infinite";
 

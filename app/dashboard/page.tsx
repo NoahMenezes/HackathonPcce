@@ -21,6 +21,7 @@ import { useDashboard } from "@/contexts/dashboard-context";
 import { Button } from "@/components/ui/button";
 import { BasicMapExample } from "@/components/my-map";
 import { ProtectedRoute } from "@/components/protected-route";
+import { Silk } from "@/components/ui/silk";
 
 export default function Page() {
   return (
@@ -60,8 +61,19 @@ function DashboardContent() {
   }, [stats.criticalIssuesPending]);
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <div className="flex flex-1 flex-col">
+    <div className="flex flex-col min-h-screen relative">
+      {/* Silk Background */}
+      <div className="fixed inset-0 w-full h-full -z-10 opacity-60 dark:opacity-50">
+        <Silk
+          speed={5}
+          scale={1}
+          color="#7B7481"
+          noiseIntensity={1.5}
+          rotation={0}
+        />
+      </div>
+
+      <div className="flex flex-1 flex-col relative z-10">
         <div className="@container/main flex flex-1 flex-col gap-2">
           <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
             {/* Dashboard Header */}
@@ -137,7 +149,7 @@ function DashboardContent() {
                       Latest system updates and resolved issues
                     </div>
                     <div className="space-y-3 text-black dark:text-white">
-                      {recentActivity.slice(0, 5).map((activity) => {
+                      {recentActivity.slice(0, 5).map((activity, index) => {
                         const severityColors = {
                           success: "bg-green-500",
                           warning: "bg-yellow-500",
@@ -152,7 +164,7 @@ function DashboardContent() {
                         };
                         return (
                           <div
-                            key={activity.id}
+                            key={`${activity.id}-${index}`}
                             className="flex items-start gap-3"
                           >
                             <div
@@ -308,7 +320,7 @@ function DashboardContent() {
           {/* Map Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
             <div className="lg:col-span-2">
-              <NeonGradientCard className="max-w-full p-6">
+              <NeonGradientCard className="max-w-full p-6" borderSize={0.5}>
                 <div className="mb-4">
                   <h3 className="text-lg font-semibold text-black dark:text-white flex items-center gap-2">
                     <MapPin className="h-5 w-5" />
