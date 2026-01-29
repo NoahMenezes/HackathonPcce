@@ -34,8 +34,14 @@ export async function sendEmail({ to, subject, html }: SendEmailParams) {
   }
 }
 
-export async function sendWelcomeEmail(name: string, email: string) {
-  const subject = "Welcome to OurStreet - Account Created Successfully! 🎉";
+export async function sendWelcomeEmail(
+  name: string,
+  email: string,
+  role?: string,
+) {
+  const isAdmin = role === "admin";
+  const roleText = isAdmin ? "Admin" : "User";
+  const subject = `Welcome to OurStreet - ${roleText} Account Created Successfully! 🎉`;
   const html = `
     <!DOCTYPE html>
     <html>
@@ -128,11 +134,11 @@ export async function sendWelcomeEmail(name: string, email: string) {
             <h2>Welcome to OurStreet, ${name}! 🎉</h2>
 
             <p>
-              Congratulations! Your account has been successfully created. We're thrilled to have you join our community of engaged citizens working together to make our streets better.
+              Congratulations! Your <strong>${roleText} Account</strong> has been successfully created. We're thrilled to have you join our ${isAdmin ? "administrative team managing" : "community of engaged citizens working together to make"} our streets better.
             </p>
 
             <p>
-              OurStreet is your platform to report civic issues, track their resolution in real-time, and collaborate with your community and local authorities to create lasting positive change.
+              ${isAdmin ? "As an administrator, you have full access to manage issues, users, analytics, and system settings. Your role is crucial in ensuring smooth operations and community engagement." : "OurStreet is your platform to report civic issues, track their resolution in real-time, and collaborate with your community and local authorities to create lasting positive change."}
             </p>
 
             <div style="text-align: center;">
@@ -144,17 +150,30 @@ export async function sendWelcomeEmail(name: string, email: string) {
             <div class="features">
               <h3 style="color: #9E7AFF; margin-top: 0;">What You Can Do:</h3>
               <ul>
+                ${
+                  isAdmin
+                    ? `
+                <li><strong>Issue Management:</strong> Review, prioritize, and resolve reported issues</li>
+                <li><strong>User Management:</strong> Manage user accounts, roles, and permissions</li>
+                <li><strong>Analytics Dashboard:</strong> Access comprehensive reports and performance metrics</li>
+                <li><strong>Notifications:</strong> Send updates and alerts to users</li>
+                <li><strong>System Settings:</strong> Configure SLA times, security policies, and more</li>
+                `
+                    : `
                 <li><strong>Report Issues:</strong> Submit civic problems with photos, descriptions, and GPS location</li>
                 <li><strong>Track Progress:</strong> Monitor the status of reported issues in real-time</li>
                 <li><strong>View Interactive Map:</strong> See all community issues on a city-wide map</li>
                 <li><strong>Community Engagement:</strong> Upvote issues and collaborate with neighbors</li>
                 <li><strong>Impact Analytics:</strong> Access comprehensive reports and statistics</li>
+                `
+                }
               </ul>
             </div>
 
             <p>
               <strong>Your Account Details:</strong><br>
               Email: ${email}<br>
+              Account Type: <span class="badge" style="background: ${isAdmin ? "linear-gradient(135deg, #dc2626 0%, #ef4444 100%)" : "linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)"}; padding: 4px 12px; border-radius: 4px; color: white; font-size: 13px;">${isAdmin ? "Admin Account" : "User Account"}</span><br>
               Registration Date: ${new Date().toLocaleDateString("en-US", {
                 year: "numeric",
                 month: "long",
@@ -199,8 +218,11 @@ export async function sendLoginEmail(
   email: string,
   ipAddress?: string,
   userAgent?: string,
+  role?: string,
 ) {
-  const subject = "New Login to Your OurStreet Account 🔐";
+  const isAdmin = role === "admin";
+  const roleText = isAdmin ? "as an Admin" : "as a User";
+  const subject = `New Login to Your OurStreet Account ${roleText} 🔐`;
   const loginTime = new Date().toLocaleString("en-US", {
     dateStyle: "full",
     timeStyle: "long",
@@ -310,10 +332,11 @@ export async function sendLoginEmail(
             <h2>Hello ${name},</h2>
 
             <p>
-              We detected a successful login to your OurStreet account. This email is to confirm that you recently accessed your account and to help you keep track of your account security.
+              We detected a successful login to your OurStreet account <strong>${roleText}</strong>. This email is to confirm that you recently accessed your account and to help you keep track of your account security.
             </p>
 
             <div class="login-details">
+              <p><strong>👤 Login Type:</strong> <span class="badge" style="background: ${isAdmin ? "linear-gradient(135deg, #dc2626 0%, #ef4444 100%)" : "linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)"}; padding: 4px 12px; border-radius: 4px; color: white; font-size: 13px;">${isAdmin ? "Admin Access" : "User Access"}</span></p>
               <p><strong>📅 Login Time:</strong> ${loginTime}</p>
               ${ipAddress ? `<p><strong>🌐 IP Address:</strong> ${ipAddress}</p>` : ""}
               ${userAgent ? `<p><strong>💻 Device/Browser:</strong> ${userAgent.substring(0, 100)}${userAgent.length > 100 ? "..." : ""}</p>` : ""}

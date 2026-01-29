@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { userDb } from "@/lib/db";
 import {
   hashPassword,
   validateEmail,
@@ -91,7 +90,6 @@ export async function POST(request: NextRequest) {
       `Checking if user exists in ${role} database: ${email.toLowerCase()}`,
     );
 
-    let existingUser;
     // Check in the appropriate Supabase database using maybeSingle() to avoid errors
     const { data, error: checkError } = await supabaseClient
       .from("users")
@@ -113,7 +111,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    existingUser = data;
+    const existingUser = data;
 
     if (existingUser) {
       console.log(
@@ -173,11 +171,13 @@ export async function POST(request: NextRequest) {
     // Generate token
     const token = generateToken(newUser.id, newUser.email, newUser.role);
 
-    // Send welcome email (async, don't wait for it)
-    sendWelcomeEmail(newUser.name, newUser.email).catch((error) => {
-      console.error("Failed to send welcome email:", error);
-      // Don't fail the signup if email fails
-    });
+    // Send welcome email with role (async, don't wait for it)
+    sendWelcomeEmail(newUser.name, newUser.email, newUser.role).catch(
+      (error) => {
+        console.error("Failed to send welcome email:", error);
+        // Don't fail the signup if email fails
+      },
+    );
 
     // Return success response
     return NextResponse.json(

@@ -8,6 +8,7 @@ import {
   IssueFilters,
 } from "@/lib/types";
 import { categorizeIssue, isAIServiceAvailable } from "@/lib/ai/service";
+import { sendEmail } from "@/lib/email";
 
 // ============================================================================
 // SECURITY CONFIGURATION
@@ -424,6 +425,191 @@ export async function POST(request: NextRequest) {
       userId: user.userId,
       aiMetadata,
     });
+
+    if (!newIssue) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Failed to create issue",
+        } as ApiResponse,
+        { status: 500 },
+      );
+    }
+
+    // Send email notification about the report submission
+    try {
+      const priorityColors = {
+        low: "#10b981",
+        medium: "#f59e0b",
+        high: "#ef4444",
+        critical: "#dc2626",
+      };
+
+      const priorityLabels = {
+        low: "Low Priority",
+        medium: "Medium Priority",
+        high: "High Priority",
+        critical: "Critical Priority",
+      };
+
+      const categoryLabels: Record<string, string> = {
+        pothole: "Pothole",
+        streetlight: "Streetlight",
+        garbage: "Garbage",
+        water_leak: "Water Leak",
+        road: "Road Issue",
+        sanitation: "Sanitation",
+        drainage: "Drainage",
+        electricity: "Electricity",
+        traffic: "Traffic",
+        other: "Other",
+      };
+
+      await sendEmail({
+        to: user.email,
+        subject: `Report Submitted Successfully - ${sanitizedTitle}`,
+        html: `
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Report Submitted</title>
+              <style>
+                body {
+                  margin: 0;
+                  padding: 0;
+                  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+                  background-color: #f5f5f5;
+                }
+                .container {
+                  max-width: 600px;
+                  margin: 0 auto;
+                  background-color: #ffffff;
+                }
+                .header {
+                  background: linear-gradient(135deg, #9E7AFF 0%, #FE8BBB 100%);
+                  padding: 40px 20px;
+                  text-align: center;
+                }
+                .header h1 {
+                  color: #ffffff;
+                  margin: 0;
+                  font-size: 28px;
+                  font-weight: bold;
+                }
+                .content {
+                  padding: 40px 30px;
+                  color: #333333;
+                  line-height: 1.6;
+                }
+                .badge {
+                  display: inline-block;
+                  padding: 6px 12px;
+                  border-radius: 6px;
+                  font-size: 12px;
+                  font-weight: 600;
+                  color: #ffffff;
+                }
+                .issue-details {
+                  background-color: #f9f9f9;
+                  padding: 20px;
+                  border-radius: 8px;
+                  margin: 20px 0;
+                  border-left: 4px solid #9E7AFF;
+                }
+                .issue-details p {
+                  margin: 10px 0;
+                  font-size: 14px;
+                }
+                .issue-details strong {
+                  color: #333333;
+                }
+                .footer {
+                  background-color: #f5f5f5;
+                  padding: 30px;
+                  text-align: center;
+                  color: #888888;
+                  font-size: 14px;
+                }
+                .button {
+                  display: inline-block;
+                  padding: 14px 32px;
+                  background: linear-gradient(135deg, #9E7AFF 0%, #FE8BBB 100%);
+                  color: #ffffff;
+                  text-decoration: none;
+                  border-radius: 8px;
+                  font-weight: 600;
+                  margin: 20px 0;
+                }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <div class="header">
+                  <h1>✅ Report Submitted Successfully</h1>
+                </div>
+
+                <div class="content">
+                  <p>Hello,</p>
+
+                  <p>
+                    Thank you for reporting an issue on OurStreet. Your report has been successfully submitted and is now being reviewed by our team.
+                  </p>
+
+                  <div class="issue-details">
+                    <p><strong>Report ID:</strong> ${newIssue.id}</p>
+                    <p><strong>Title:</strong> ${sanitizedTitle}</p>
+                    <p><strong>Category:</strong> ${categoryLabels[finalCategory] || finalCategory}</p>
+                    <p><strong>Location:</strong> ${sanitizedLocation}</p>
+                    <p><strong>Priority:</strong> <span class="badge" style="background-color: ${priorityColors[priority]}">${priorityLabels[priority]}</span></p>
+                    <p><strong>Status:</strong> <span class="badge" style="background-color: #3b82f6">Open</span></p>
+                    <p><strong>Description:</strong> ${sanitizedDescription.substring(0, 200)}${sanitizedDescription.length > 200 ? "..." : ""}</p>
+                    <p><strong>Submitted:</strong> ${new Date(newIssue.createdAt).toLocaleString("en-US", { dateStyle: "full", timeStyle: "short" })}</p>
+                  </div>
+
+                  <p>
+                    <strong>What happens next?</strong>
+                  </p>
+                  <ul>
+                    <li>Our team will review your report within 24-48 hours</li>
+                    <li>You'll receive updates as the status changes</li>
+                    <li>You can track progress on your dashboard</li>
+                    <li>Community members can upvote and support your report</li>
+                  </ul>
+
+                  <div style="text-align: center;">
+                    <a href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/issues/${newIssue.id}" class="button">
+                      View Report Details
+                    </a>
+                  </div>
+
+                  <p style="margin-top: 30px;">
+                    Thank you for helping make our community better!
+                  </p>
+
+                  <p>
+                    Best regards,<br>
+                    <strong>The OurStreet Team</strong>
+                  </p>
+                </div>
+
+                <div class="footer">
+                  <p>© ${new Date().getFullYear()} OurStreet. All rights reserved.</p>
+                  <p>
+                    <a href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/dashboard" style="color: #9E7AFF; text-decoration: none;">Dashboard</a> |
+                    <a href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/issues/${newIssue.id}" style="color: #9E7AFF; text-decoration: none;">View Report</a>
+                  </p>
+                </div>
+              </div>
+            </body>
+          </html>
+        `,
+      });
+    } catch (emailError) {
+      console.error("Failed to send report submission email:", emailError);
+      // Don't fail the request if email fails
+    }
 
     return NextResponse.json(
       {

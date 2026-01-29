@@ -185,13 +185,17 @@ export async function POST(request: NextRequest) {
 
     console.log(`Successful login to ${userType} database: ${user.email}`);
 
-    // Send login notification email (async, don't wait for it)
-    sendLoginEmail(user.name, user.email, ipAddress, userAgent).catch(
-      (error) => {
-        console.error("Failed to send login notification email:", error);
-        // Don't fail the login if email fails
-      },
-    );
+    // Send login notification email with role (async, don't wait for it)
+    sendLoginEmail(
+      user.name,
+      user.email,
+      ipAddress,
+      userAgent,
+      user.role,
+    ).catch((error) => {
+      console.error("Failed to send login notification email:", error);
+      // Don't fail the login if email fails
+    });
 
     // Return success response with rate limit headers
     return NextResponse.json(
