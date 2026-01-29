@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { Navigation } from "@/components/navigation";
+import { Silk } from "@/components/ui/silk";
 import {
   Card,
   CardContent,
@@ -186,7 +187,17 @@ export default function AnalyticsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background relative">
+        {/* Silk Background */}
+        <div className="fixed inset-0 w-full h-full -z-10 opacity-60 dark:opacity-50">
+          <Silk
+            speed={5}
+            scale={1}
+            color="#5227FF"
+            noiseIntensity={1.5}
+            rotation={0}
+          />
+        </div>
         <Navigation />
         <div className="flex flex-1 items-center justify-center min-h-[calc(100vh-3.5rem)]">
           <div className="text-center">
@@ -200,7 +211,17 @@ export default function AnalyticsPage() {
 
   if (!report) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background relative">
+        {/* Silk Background */}
+        <div className="fixed inset-0 w-full h-full -z-10 opacity-60 dark:opacity-50">
+          <Silk
+            speed={5}
+            scale={1}
+            color="#5227FF"
+            noiseIntensity={1.5}
+            rotation={0}
+          />
+        </div>
         <Navigation />
         <div className="flex flex-1 items-center justify-center min-h-[calc(100vh-3.5rem)]">
           <div className="text-center">
@@ -213,9 +234,19 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
+      {/* Silk Background */}
+      <div className="fixed inset-0 w-full h-full -z-10 opacity-60 dark:opacity-50">
+        <Silk
+          speed={5}
+          scale={1}
+          color="#5227FF"
+          noiseIntensity={1.5}
+          rotation={0}
+        />
+      </div>
       <Navigation />
-      <div className="container mx-auto px-4 py-6 max-w-full">
+      <div className="container mx-auto px-4 py-6 max-w-full relative z-10">
         <div className="flex flex-col gap-4 md:gap-6">
           {/* Header */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

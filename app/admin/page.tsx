@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/auth-context";
+import { Silk } from "@/components/ui/silk";
+import { BorderBeam } from "@/components/magicui/border-beam";
 import {
   Card,
   CardContent,
@@ -24,9 +26,12 @@ import {
   Activity,
   ClipboardList,
   UserCog,
+  Mic,
+  RefreshCw,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
 
 interface AdminStats {
   totalUsers: number;
@@ -53,6 +58,11 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (isAuthenticated && user?.role === "admin") {
       fetchAdminStats();
+      // Auto-refresh stats every 30 seconds
+      const interval = setInterval(() => {
+        fetchAdminStats();
+      }, 30000);
+      return () => clearInterval(interval);
     }
   }, [isAuthenticated, user]);
 
@@ -163,8 +173,22 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Silk Background */}
+      <div className="fixed inset-0 w-full h-full z-0">
+        <Silk
+          speed={5}
+          scale={1}
+          color="#5227FF"
+          noiseIntensity={1.5}
+          rotation={0}
+        />
+      </div>
+
+      {/* Overlay for better contrast */}
+      <div className="fixed inset-0 w-full h-full z-1 bg-gray-50/80 dark:bg-gray-950/80 backdrop-blur-sm" />
+
+      <div className="container mx-auto px-4 py-8 max-w-7xl relative z-10">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
@@ -183,7 +207,8 @@ export default function AdminDashboard() {
 
         {/* Stats Overview */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
-          <Card>
+          <Card className="relative overflow-hidden">
+            <BorderBeam duration={12} delay={0} />
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
                 Total Users
@@ -201,7 +226,8 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="relative overflow-hidden">
+            <BorderBeam duration={12} delay={3} />
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
                 Total Issues
@@ -219,7 +245,8 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="relative overflow-hidden">
+            <BorderBeam duration={12} delay={6} />
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
                 Pending Issues
@@ -237,7 +264,8 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="relative overflow-hidden">
+            <BorderBeam duration={12} delay={9} />
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
                 Resolution Rate
@@ -262,11 +290,12 @@ export default function AdminDashboard() {
             Admin Features
           </h2>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {adminFeatures.map((feature) => {
+            {adminFeatures.map((feature, index) => {
               const Icon = feature.icon;
               return (
                 <Link key={feature.href} href={feature.href}>
-                  <Card className="h-full transition-all hover:shadow-lg hover:scale-[1.02] cursor-pointer">
+                  <Card className="h-full relative overflow-hidden transition-all hover:shadow-lg hover:scale-[1.02] cursor-pointer">
+                    <BorderBeam duration={15} delay={index * 2} />
                     <CardHeader>
                       <div className="flex items-start justify-between">
                         <div
@@ -291,7 +320,8 @@ export default function AdminDashboard() {
         </div>
 
         {/* Quick Actions */}
-        <Card>
+        <Card className="relative overflow-hidden">
+          <BorderBeam duration={20} delay={0} />
           <CardHeader>
             <CardTitle>Quick Actions</CardTitle>
             <CardDescription>Common administrative tasks</CardDescription>
@@ -316,6 +346,25 @@ export default function AdminDashboard() {
                   Manage Users
                 </Button>
               </Link>
+              <Link href="/voice-agent">
+                <Button variant="outline">
+                  <Mic className="mr-2 h-4 w-4" />
+                  Voice Agent
+                </Button>
+              </Link>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  fetchAdminStats();
+                  toast.success("Stats refreshed!");
+                }}
+                disabled={loadingStats}
+              >
+                <RefreshCw
+                  className={`mr-2 h-4 w-4 ${loadingStats ? "animate-spin" : ""}`}
+                />
+                Refresh Stats
+              </Button>
               <Link href="/">
                 <Button variant="outline">Back to Home</Button>
               </Link>

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/auth-context";
+import { Silk } from "@/components/ui/silk";
 import {
   Card,
   CardContent,
@@ -240,8 +241,19 @@ export default function AdminUsersPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 relative">
+      {/* Silk Background */}
+      <div className="fixed inset-0 w-full h-full -z-10 opacity-60 dark:opacity-50">
+        <Silk
+          speed={5}
+          scale={1}
+          color="#5227FF"
+          noiseIntensity={1.5}
+          rotation={0}
+        />
+      </div>
+
+      <div className="container mx-auto px-4 py-8 max-w-7xl relative z-10">
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
