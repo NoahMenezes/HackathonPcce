@@ -1,6 +1,9 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Make Resend optional - only initialize if API key is present
+const resend = process.env.RESEND_API_KEY
+  ? new Resend(process.env.RESEND_API_KEY)
+  : null;
 
 interface SendEmailParams {
   to: string;
@@ -9,6 +12,13 @@ interface SendEmailParams {
 }
 
 export async function sendEmail({ to, subject, html }: SendEmailParams) {
+  // If Resend is not configured, log and return success (graceful fallback)
+  if (!resend) {
+    console.log(`[Email Disabled] Would send email to ${to}: ${subject}`);
+    console.log("To enable emails, set RESEND_API_KEY environment variable");
+    return { success: true, data: null, disabled: true };
+  }
+
   try {
     const data = await resend.emails.send({
       from: "OurStreet <onboarding@resend.dev>", // Change this to your verified domain
@@ -148,7 +158,7 @@ export async function sendWelcomeEmail(name: string, email: string) {
               Registration Date: ${new Date().toLocaleDateString("en-US", {
                 year: "numeric",
                 month: "long",
-                day: "numeric"
+                day: "numeric",
               })}
             </p>
 
@@ -184,7 +194,12 @@ export async function sendWelcomeEmail(name: string, email: string) {
   return sendEmail({ to: email, subject, html });
 }
 
-export async function sendLoginEmail(name: string, email: string, ipAddress?: string, userAgent?: string) {
+export async function sendLoginEmail(
+  name: string,
+  email: string,
+  ipAddress?: string,
+  userAgent?: string,
+) {
   const subject = "New Login to Your OurStreet Account 🔐";
   const loginTime = new Date().toLocaleString("en-US", {
     dateStyle: "full",
